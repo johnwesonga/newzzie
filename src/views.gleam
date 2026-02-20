@@ -1,4 +1,5 @@
 import gleam/list
+import gleam/string
 import lustre/attribute
 import lustre/element.{type Element}
 import lustre/element/html
@@ -57,13 +58,27 @@ fn view_search_form(model: models.Model) -> Element(models.Msg) {
         html.button(
           [
             attribute.class(
-              "px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors",
+              "px-6 py-2 rounded-lg font-semibold transition-colors "
+              <> case is_valid_query(model.current_query) {
+                True ->
+                  "bg-blue-600 text-white hover:bg-blue-700 cursor-pointer"
+                False ->
+                  "bg-gray-300 text-gray-500 cursor-not-allowed"
+              },
             ),
+            attribute.disabled(!is_valid_query(model.current_query)),
             event.on_click(models.SearchArticles(model.current_query)),
           ],
           [element.text("Search")],
         ),
       ]),
+      case is_valid_query(model.current_query) {
+        True -> element.none()
+        False ->
+          html.p([attribute.class("text-red-600 text-sm mt-2")], [
+            element.text(get_query_error(model.current_query)),
+          ])
+      },
       html.div([attribute.class("flex flex-wrap gap-4")], [
         html.label([attribute.class("flex items-center gap-2")], [
           element.text("Filter by country:"),
@@ -249,6 +264,21 @@ fn view_article_description(description: String) -> Element(models.Msg) {
       html.p([attribute.class("text-gray-700 text-sm line-clamp-2 mb-3")], [
         element.text(desc),
       ])
+  }
+}
+
+// Validation helpers
+fn is_valid_query(query: String) -> Bool {
+  let trimmed = string.trim(query)
+  string.length(trimmed) > 0 && string.length(trimmed) >= 2
+}
+
+fn get_query_error(query: String) -> String {
+  let trimmed = string.trim(query)
+  case string.length(trimmed) {
+    0 -> "Search query cannot be empty"
+    1 -> "Search query must be at least 2 characters"
+    _ -> ""
   }
 }
 
