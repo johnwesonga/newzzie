@@ -30,9 +30,7 @@ The application is built with:
 ## Development
 
 ```sh
-gleam run   # Run the development server
-gleam test  # Run tests
-gleam build # Build for production
+gleam run -m lustre/dev start   # Run the lustre development server
 ```
 
 ## Requirements
