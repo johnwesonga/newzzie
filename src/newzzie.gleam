@@ -41,10 +41,20 @@ fn update(
       #(updated, api_effect)
     }
     models.LoadTopHeadlines(country) -> {
-      let updated =
-        models.Model(..model, current_country: country, loading: True)
-      #(updated, effect.none())
-    }
+       let updated =
+         models.Model(..model, current_country: country, loading: True)
+       let api_effect =
+         api.top_headlines(country, "a688e6494c444902b1fc9cb93c61d697", fn(result) {
+           case result {
+             Ok(articles) -> models.ArticlesLoaded(articles, list.length(articles))
+             Error(_) ->
+               models.HeadlinesFailed(
+                 "Failed to fetch headlines. Please try again.",
+               )
+           }
+         })
+       #(updated, api_effect)
+     }
     models.LoadHeadlines -> #(
       models.Model(..model, loading: True),
       effect.none(),

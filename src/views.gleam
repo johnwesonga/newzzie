@@ -80,12 +80,16 @@ fn view_search_form(model: models.Model) -> Element(models.Msg) {
             element.text(get_query_error(model.current_query)),
           ])
       },
-      html.div([attribute.class("flex flex-wrap gap-4")], [
-        html.label([attribute.class("flex items-center gap-2")], [
+      html.div([attribute.class("flex flex-wrap gap-4 items-center")], [
+        html.label([attribute.class("font-semibold text-gray-700")], [
           element.text("Filter by country:"),
-          html.span([attribute.class("text-gray-600 text-sm")], [
-            element.text("US, UK, CA, DE, FR"),
-          ]),
+        ]),
+        html.div([attribute.class("flex flex-wrap gap-2")], [
+          view_country_button(model, "us", "US"),
+          view_country_button(model, "gb", "UK"),
+          view_country_button(model, "ca", "CA"),
+          view_country_button(model, "de", "DE"),
+          view_country_button(model, "fr", "FR"),
         ]),
       ]),
     ]),
@@ -270,6 +274,30 @@ fn view_article_description(description: String) -> Element(models.Msg) {
         element.text(desc),
       ])
   }
+}
+
+// Render country filter button
+fn view_country_button(
+  model: models.Model,
+  country_code: String,
+  label: String,
+) -> Element(models.Msg) {
+  let is_active = model.current_country == country_code
+  html.button(
+    [
+      attribute.class(
+        "px-4 py-2 rounded-lg font-semibold transition-colors "
+        <> case is_active {
+          True ->
+            "bg-blue-600 text-white hover:bg-blue-700"
+          False ->
+            "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+        },
+      ),
+      event.on_click(models.LoadTopHeadlines(country_code)),
+    ],
+    [element.text(label)],
+  )
 }
 
 // Validation helpers
