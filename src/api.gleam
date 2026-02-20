@@ -4,8 +4,8 @@ import gleam/option
 import gleam/result
 import gleam/string
 import lustre/effect
-import rsvp
 import models
+import rsvp
 
 pub opaque type Error {
   RequestFailed(rsvp.Error)
@@ -38,9 +38,9 @@ pub fn everything(
       on_response(result.map_error(result, fn(err) { RequestFailed(err) }))
     }),
   )
-  }
+}
 
-  pub fn top_headlines(
+pub fn top_headlines(
   country: String,
   api_key: String,
   on_response: fn(Result(List(models.Article), Error)) -> msg,
@@ -57,9 +57,9 @@ pub fn everything(
       on_response(result.map_error(result, fn(err) { RequestFailed(err) }))
     }),
   )
-  }
+}
 
-  pub fn top_headlines_by_source(
+pub fn top_headlines_by_source(
   sources: List(String),
   api_key: String,
   on_response: fn(Result(List(models.Article), Error)) -> msg,
@@ -77,9 +77,9 @@ pub fn everything(
       on_response(result.map_error(result, fn(err) { RequestFailed(err) }))
     }),
   )
-  }
+}
 
-  // Decoders
+// Decoders
 fn articles_decoder() -> decode.Decoder(List(models.Article)) {
   use articles <- decode.field("articles", decode.list(article_decoder()))
   decode.success(articles)
@@ -111,8 +111,5 @@ fn source_decoder() -> decode.Decoder(models.Source) {
   use id <- decode.field("id", decode.optional(decode.string))
   use name <- decode.field("name", decode.string)
 
-  decode.success(models.Source(
-    id: option.unwrap(id, ""),
-    name: name,
-  ))
+  decode.success(models.Source(id: option.unwrap(id, ""), name: name))
 }

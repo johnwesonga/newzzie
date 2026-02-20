@@ -63,8 +63,7 @@ fn view_search_form(model: models.Model) -> Element(models.Msg) {
               <> case is_valid_query(model.current_query) {
                 True ->
                   "bg-blue-600 text-white hover:bg-blue-700 cursor-pointer"
-                False ->
-                  "bg-gray-300 text-gray-500 cursor-not-allowed"
+                False -> "bg-gray-300 text-gray-500 cursor-not-allowed"
               },
             ),
             attribute.disabled(!is_valid_query(model.current_query)),
@@ -288,8 +287,7 @@ fn view_country_button(
       attribute.class(
         "px-4 py-2 rounded-lg font-semibold transition-colors "
         <> case is_active {
-          True ->
-            "bg-blue-600 text-white hover:bg-blue-700"
+          True -> "bg-blue-600 text-white hover:bg-blue-700"
           False ->
             "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
         },

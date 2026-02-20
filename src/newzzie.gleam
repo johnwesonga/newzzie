@@ -31,7 +31,8 @@ fn update(
       let api_effect =
         api.everything(query, "a688e6494c444902b1fc9cb93c61d697", fn(result) {
           case result {
-            Ok(articles) -> models.ArticlesLoaded(articles, list.length(articles))
+            Ok(articles) ->
+              models.ArticlesLoaded(articles, list.length(articles))
             Error(_) ->
               models.HeadlinesFailed(
                 "Failed to fetch articles. Please try again.",
@@ -41,26 +42,37 @@ fn update(
       #(updated, api_effect)
     }
     models.LoadTopHeadlines(country) -> {
-       let updated =
-         models.Model(..model, current_country: country, loading: True)
-       let api_effect =
-         api.top_headlines(country, "a688e6494c444902b1fc9cb93c61d697", fn(result) {
-           case result {
-             Ok(articles) -> models.ArticlesLoaded(articles, list.length(articles))
-             Error(_) ->
-               models.HeadlinesFailed(
-                 "Failed to fetch headlines. Please try again.",
-               )
-           }
-         })
-       #(updated, api_effect)
-     }
+      let updated =
+        models.Model(..model, current_country: country, loading: True)
+      let api_effect =
+        api.top_headlines(
+          country,
+          "a688e6494c444902b1fc9cb93c61d697",
+          fn(result) {
+            case result {
+              Ok(articles) ->
+                models.ArticlesLoaded(articles, list.length(articles))
+              Error(_) ->
+                models.HeadlinesFailed(
+                  "Failed to fetch headlines. Please try again.",
+                )
+            }
+          },
+        )
+      #(updated, api_effect)
+    }
     models.LoadHeadlines -> #(
       models.Model(..model, loading: True),
       effect.none(),
     )
     models.ArticlesLoaded(articles, count) -> #(
-      models.Model(..model, articles: articles, total_results: count, loading: False, error: ""),
+      models.Model(
+        ..model,
+        articles: articles,
+        total_results: count,
+        loading: False,
+        error: "",
+      ),
       effect.none(),
     )
     models.HeadlinesFailed(error) -> #(
