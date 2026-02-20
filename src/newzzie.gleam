@@ -16,6 +16,8 @@ fn init(_: Nil) -> models.Model {
 // Handle application messages and update state
 fn update(model: models.Model, msg: models.Msg) -> models.Model {
   case msg {
+    models.SearchQueryChanged(query) ->
+      models.Model(..model, current_query: query)
     models.SearchArticles(query) ->
       models.Model(..model, current_query: query, loading: True)
     models.LoadTopHeadlines(country) ->

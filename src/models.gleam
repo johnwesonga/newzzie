@@ -28,6 +28,7 @@ pub type Model {
 
 // Application messages
 pub type Msg {
+  SearchQueryChanged(String)
   SearchArticles(String)
   LoadTopHeadlines(String)
   LoadHeadlines
