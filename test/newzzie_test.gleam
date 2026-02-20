@@ -106,3 +106,82 @@ pub fn multiple_sources_test() {
   should.equal(source2.name, "CNN")
   should.equal(source3.id, "")
 }
+
+// Test application initialization
+pub fn app_init_test() {
+  let model = models.init()
+
+  should.equal(model.loading, False)
+  should.equal(model.error, "")
+  should.equal(model.current_query, "")
+  should.equal(model.current_country, "us")
+  should.equal(list.length(model.articles), 0)
+}
+
+// Test model with loaded articles
+pub fn model_with_articles_test() {
+  let source = models.Source(id: "bbc", name: "BBC News")
+  let article1 =
+    models.Article(
+      source: source,
+      author: "Author 1",
+      title: "Article 1",
+      description: "Description 1",
+      url: "https://example.com/1",
+      url_to_image: "https://example.com/1.jpg",
+      published_at: "2026-02-20T10:00:00Z",
+      content: "Content 1",
+    )
+  let article2 =
+    models.Article(
+      source: source,
+      author: "Author 2",
+      title: "Article 2",
+      description: "Description 2",
+      url: "https://example.com/2",
+      url_to_image: "https://example.com/2.jpg",
+      published_at: "2026-02-20T11:00:00Z",
+      content: "Content 2",
+    )
+
+  let model =
+    models.Model(
+      articles: [article1, article2],
+      loading: False,
+      error: "",
+      current_query: "bitcoin",
+      current_country: "us",
+    )
+
+  should.equal(list.length(model.articles), 2)
+  should.equal(model.current_query, "bitcoin")
+}
+
+// Test model loading state
+pub fn model_loading_state_test() {
+  let model =
+    models.Model(
+      articles: [],
+      loading: True,
+      error: "",
+      current_query: "news",
+      current_country: "gb",
+    )
+
+  should.equal(model.loading, True)
+  should.equal(model.current_country, "gb")
+}
+
+// Test model with error
+pub fn model_with_error_test() {
+  let model =
+    models.Model(
+      articles: [],
+      loading: False,
+      error: "Network error occurred",
+      current_query: "",
+      current_country: "us",
+    )
+
+  should.equal(model.error, "Network error occurred")
+}

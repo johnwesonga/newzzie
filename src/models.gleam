@@ -14,3 +14,34 @@ pub type Article {
     content: String,
   )
 }
+
+// Application state model
+pub type Model {
+  Model(
+    articles: List(Article),
+    loading: Bool,
+    error: String,
+    current_query: String,
+    current_country: String,
+  )
+}
+
+// Application messages
+pub type Msg {
+  SearchArticles(String)
+  LoadTopHeadlines(String)
+  LoadHeadlines
+  ArticlesLoaded(List(Article))
+  HeadlinesFailed(String)
+}
+
+// Initialize the application with empty state
+pub fn init() -> Model {
+  Model(
+    articles: [],
+    loading: False,
+    error: "",
+    current_query: "",
+    current_country: "us",
+  )
+}
