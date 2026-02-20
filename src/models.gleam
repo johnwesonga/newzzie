@@ -19,6 +19,7 @@ pub type Article {
 pub type Model {
   Model(
     articles: List(Article),
+    total_results: Int,
     loading: Bool,
     error: String,
     current_query: String,
@@ -32,7 +33,7 @@ pub type Msg {
   SearchArticles(String)
   LoadTopHeadlines(String)
   LoadHeadlines
-  ArticlesLoaded(List(Article))
+  ArticlesLoaded(List(Article), Int)
   HeadlinesFailed(String)
 }
 
@@ -40,6 +41,7 @@ pub type Msg {
 pub fn init() -> Model {
   Model(
     articles: [],
+    total_results: 0,
     loading: False,
     error: "",
     current_query: "",

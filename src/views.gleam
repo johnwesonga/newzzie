@@ -1,3 +1,4 @@
+import gleam/int
 import gleam/list
 import gleam/string
 import lustre/attribute
@@ -97,7 +98,7 @@ fn view_content(model: models.Model) -> Element(models.Msg) {
     True, _, _ -> view_loading()
     _, _, err if err != "" -> view_error(err)
     _, True, _ -> view_empty_state()
-    _, False, _ -> view_articles(model.articles)
+    _, False, _ -> view_articles(model)
   }
 }
 
@@ -153,14 +154,18 @@ fn view_empty_state() -> Element(models.Msg) {
 }
 
 // Render list of articles
-fn view_articles(articles: List(models.Article)) -> Element(models.Msg) {
+fn view_articles(model: models.Model) -> Element(models.Msg) {
+  let count_text = case model.total_results {
+    0 -> "Latest Articles"
+    count -> "Latest Articles (" <> int.to_string(count) <> " results)"
+  }
   html.section([], [
     html.h2([attribute.class("text-3xl font-bold text-gray-900 mb-8")], [
-      element.text("Latest Articles"),
+      element.text(count_text),
     ]),
     html.div(
       [attribute.class("grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6")],
-      list.map(articles, view_article),
+      list.map(model.articles, view_article),
     ),
   ])
 }
