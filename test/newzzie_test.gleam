@@ -113,15 +113,15 @@ pub fn multiple_sources_test() {
 
 // Test application initialization
 pub fn app_init_test() {
-   let model = models.init()
+  let model = models.init()
 
-   should.equal(model.loading, False)
-   should.equal(model.error, "")
-   should.equal(model.current_query, "")
-   should.equal(model.current_country, "us")
-   should.equal(list.length(model.articles), 0)
-   should.equal(model.route, routes.Home)
- }
+  should.equal(model.loading, False)
+  should.equal(model.error, "")
+  should.equal(model.current_query, "")
+  should.equal(model.current_country, "us")
+  should.equal(list.length(model.articles), 0)
+  should.equal(model.route, routes.Home)
+}
 
 // Test model with loaded articles
 pub fn model_with_articles_test() {

@@ -64,7 +64,8 @@ pub fn parse_route_sources_single_test() {
 
 // Test headlines by sources with multiple sources
 pub fn parse_route_sources_multiple_test() {
-  let uri = uri.parse("/top-headlines/sources/bbc-news,cnn,fox-news") |> should.be_ok
+  let uri =
+    uri.parse("/top-headlines/sources/bbc-news,cnn,fox-news") |> should.be_ok
   let route = routes.parse_route(uri)
   route |> should.equal(routes.HeadlinesBySources("bbc-news,cnn,fox-news"))
 }

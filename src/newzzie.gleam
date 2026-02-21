@@ -3,8 +3,8 @@ import gleam/list
 import gleam/string
 import lustre
 import lustre/effect
-import modem
 import models
+import modem
 import routes
 import views
 
@@ -16,36 +16,34 @@ pub fn main() -> Nil {
 
 // Initialize the application state
 fn init(_: Nil) -> #(models.Model, effect.Effect(models.Msg)) {
-   let route = case modem.initial_uri() {
-     Ok(uri) -> routes.parse_route(uri)
-     Error(_) -> routes.Home
-   }
+  let route = case modem.initial_uri() {
+    Ok(uri) -> routes.parse_route(uri)
+    Error(_) -> routes.Home
+  }
 
-   let initial_model = models.Model(..models.init(), route: route)
+  let initial_model = models.Model(..models.init(), route: route)
 
-   let effects = [
-     modem.init(fn(uri) {
-       uri
-       |> routes.parse_route
-       |> models.UserNavigatedTo
-     }),
-     api_effect_for_home(),
-   ]
+  let effects = [
+    modem.init(fn(uri) {
+      uri
+      |> routes.parse_route
+      |> models.UserNavigatedTo
+    }),
+    api_effect_for_home(),
+  ]
 
-   #(initial_model, effect.batch(effects))
- }
+  #(initial_model, effect.batch(effects))
+}
 
- fn api_effect_for_home() -> effect.Effect(models.Msg) {
-   api.top_headlines("us", "a688e6494c444902b1fc9cb93c61d697", fn(result) {
-     case result {
-       Ok(articles) -> models.ArticlesLoaded(articles, list.length(articles))
-       Error(_) ->
-         models.HeadlinesFailed(
-           "Failed to fetch headlines. Please try again.",
-         )
-     }
-   })
- }
+fn api_effect_for_home() -> effect.Effect(models.Msg) {
+  api.top_headlines("us", "a688e6494c444902b1fc9cb93c61d697", fn(result) {
+    case result {
+      Ok(articles) -> models.ArticlesLoaded(articles, list.length(articles))
+      Error(_) ->
+        models.HeadlinesFailed("Failed to fetch headlines. Please try again.")
+    }
+  })
+}
 
 // Handle application messages and update state
 fn update(
