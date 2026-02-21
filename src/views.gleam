@@ -37,54 +37,60 @@ fn view_route_content(model: models.Model) -> Element(models.Msg) {
 
 // Render header section
 fn view_header() -> Element(models.Msg) {
-   html.header(
-     [
-       attribute.class(
-         "bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-lg",
-       ),
-     ],
-     [
-       html.div([attribute.class("container mx-auto px-4 max-w-7xl")], [
-         html.div([attribute.class("py-8")], [
-           html.h1([attribute.class("text-4xl font-bold mb-2")], [
-             element.text("Newzzie"),
-           ]),
-           html.p([attribute.class("text-blue-100 text-lg mb-6")], [
-             element.text("Browse and search news from around the world"),
-           ]),
-         ]),
-         view_nav(),
-       ]),
-     ],
-   )
- }
+  html.header(
+    [
+      attribute.class(
+        "bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-lg",
+      ),
+    ],
+    [
+      html.div([attribute.class("container mx-auto px-4 max-w-7xl")], [
+        html.div([attribute.class("py-8")], [
+          html.h1([attribute.class("text-4xl font-bold mb-2")], [
+            element.text("Newzzie"),
+          ]),
+          html.p([attribute.class("text-blue-100 text-lg mb-6")], [
+            element.text("Browse and search news from around the world"),
+          ]),
+        ]),
+        view_nav(),
+      ]),
+    ],
+  )
+}
 
- // Render navigation
- fn view_nav() -> Element(models.Msg) {
-   html.nav([attribute.class("flex gap-6 border-t border-blue-400 pt-4 pb-4")], [
-     html.a(
-       [
-         attribute.href("/"),
-         attribute.class("text-blue-100 hover:text-white transition-colors font-medium"),
-       ],
-       [element.text("Home")],
-     ),
-     html.a(
-       [
-         attribute.href("/headlines/us"),
-         attribute.class("text-blue-100 hover:text-white transition-colors font-medium"),
-       ],
-       [element.text("Top Headlines")],
-     ),
-     html.a(
-       [
-         attribute.href("/top-headlines/sources/bbc-news,cnn,fox-news"),
-         attribute.class("text-blue-100 hover:text-white transition-colors font-medium"),
-       ],
-       [element.text("Top Sources")],
-     ),
-   ])
- }
+// Render navigation
+fn view_nav() -> Element(models.Msg) {
+  html.nav([attribute.class("flex gap-6 border-t border-blue-400 pt-4 pb-4")], [
+    html.a(
+      [
+        attribute.href("/"),
+        attribute.class(
+          "text-blue-100 hover:text-white transition-colors font-medium",
+        ),
+      ],
+      [element.text("Home")],
+    ),
+    html.a(
+      [
+        attribute.href("/headlines/us"),
+        attribute.class(
+          "text-blue-100 hover:text-white transition-colors font-medium",
+        ),
+      ],
+      [element.text("Top Headlines")],
+    ),
+    html.a(
+      [
+        attribute.href("/top-headlines/sources/bbc-news,cnn,fox-news"),
+        attribute.class(
+          "text-blue-100 hover:text-white transition-colors font-medium",
+        ),
+      ],
+      [element.text("Top Sources")],
+    ),
+  ])
+}
 
 // Render search form
 fn view_search_form(model: models.Model) -> Element(models.Msg) {
@@ -360,60 +366,66 @@ fn get_query_error(query: String) -> String {
 }
 
 // Render search results page
-fn view_search_results(model: models.Model, query: String) -> Element(models.Msg) {
-   html.div([], [
-     html.h2([attribute.class("text-3xl font-bold text-gray-900 mb-8")], [
-       element.text("Search Results for: " <> query),
-     ]),
-     view_content(model),
-   ])
- }
+fn view_search_results(
+  model: models.Model,
+  query: String,
+) -> Element(models.Msg) {
+  html.div([], [
+    html.h2([attribute.class("text-3xl font-bold text-gray-900 mb-8")], [
+      element.text("Search Results for: " <> query),
+    ]),
+    view_content(model),
+  ])
+}
 
- // Render headlines by country page
- fn view_headlines_results(model: models.Model, country: String) -> Element(models.Msg) {
-   html.div([], [
-     html.h2([attribute.class("text-3xl font-bold text-gray-900 mb-8")], [
-       element.text("Top Headlines - " <> string.uppercase(country)),
-     ]),
-     view_content(model),
-   ])
- }
+// Render headlines by country page
+fn view_headlines_results(
+  model: models.Model,
+  country: String,
+) -> Element(models.Msg) {
+  html.div([], [
+    html.h2([attribute.class("text-3xl font-bold text-gray-900 mb-8")], [
+      element.text("Top Headlines - " <> string.uppercase(country)),
+    ]),
+    view_content(model),
+  ])
+}
 
- // Render headlines by sources page
- fn view_sources_results(model: models.Model, sources: String) -> Element(models.Msg) {
-   html.div([], [
-     html.h2([attribute.class("text-3xl font-bold text-gray-900 mb-8")], [
-       element.text("Headlines from Sources: " <> sources),
-     ]),
-     view_content(model),
-   ])
- }
+// Render headlines by sources page
+fn view_sources_results(
+  model: models.Model,
+  sources: String,
+) -> Element(models.Msg) {
+  html.div([], [
+    html.h2([attribute.class("text-3xl font-bold text-gray-900 mb-8")], [
+      element.text("Headlines from Sources: " <> sources),
+    ]),
+    view_content(model),
+  ])
+}
 
- // Render 404 not found page
- fn view_not_found() -> Element(models.Msg) {
-   html.div(
-     [attribute.class("text-center py-16")],
-     [
-       html.h2([attribute.class("text-4xl font-bold text-gray-900 mb-4")], [
-         element.text("404 - Page Not Found"),
-       ]),
-       html.p([attribute.class("text-gray-600 text-lg")], [
-         element.text("The page you're looking for doesn't exist."),
-       ]),
-     ],
-   )
- }
+// Render 404 not found page
+fn view_not_found() -> Element(models.Msg) {
+  html.div([attribute.class("text-center py-16")], [
+    html.h2([attribute.class("text-4xl font-bold text-gray-900 mb-4")], [
+      element.text("404 - Page Not Found"),
+    ]),
+    html.p([attribute.class("text-gray-600 text-lg")], [
+      element.text("The page you're looking for doesn't exist."),
+    ]),
+  ])
+}
 
- // Render footer
- fn view_footer() -> Element(models.Msg) {
-   html.footer([attribute.class("bg-gray-800 text-gray-300 py-8 mt-12")], [
-     html.div([attribute.class("container mx-auto px-4 max-w-7xl text-center")], [
-       html.p([attribute.class("mb-2")], [
-         element.text("Newzzie - Your daily news aggregator"),
-       ]),
-       html.p([attribute.class("text-gray-400 text-sm")], [
-         element.text("Built with Gleam and Lustre | Powered by NewsApi.org"),
-       ]),
-     ]),
-   ])
- }
+// Render footer
+fn view_footer() -> Element(models.Msg) {
+  html.footer([attribute.class("bg-gray-800 text-gray-300 py-8 mt-12")], [
+    html.div([attribute.class("container mx-auto px-4 max-w-7xl text-center")], [
+      html.p([attribute.class("mb-2")], [
+        element.text("Newzzie - Your daily news aggregator"),
+      ]),
+      html.p([attribute.class("text-gray-400 text-sm")], [
+        element.text("Built with Gleam and Lustre | Powered by NewsApi.org"),
+      ]),
+    ]),
+  ])
+}

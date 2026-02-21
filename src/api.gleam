@@ -7,6 +7,8 @@ import lustre/effect
 import models
 import rsvp
 
+const base_url = "https://newsapi.org/v2"
+
 pub opaque type Error {
   RequestFailed(rsvp.Error)
 }
@@ -27,7 +29,7 @@ pub fn everything(
   on_response: fn(Result(List(models.Article), Error)) -> msg,
 ) -> effect.Effect(msg) {
   let url =
-    build_url("https://newsapi.org/v2/everything", [
+    build_url(base_url <> "/everything", [
       #("q", query),
       #("apiKey", api_key),
     ])
@@ -46,7 +48,7 @@ pub fn top_headlines(
   on_response: fn(Result(List(models.Article), Error)) -> msg,
 ) -> effect.Effect(msg) {
   let url =
-    build_url("https://newsapi.org/v2/top-headlines", [
+    build_url(base_url <> "/top-headlines", [
       #("country", country),
       #("apiKey", api_key),
     ])
@@ -66,7 +68,7 @@ pub fn top_headlines_by_source(
 ) -> effect.Effect(msg) {
   let sources_str = string.join(sources, ",")
   let url =
-    build_url("https://newsapi.org/v2/top-headlines", [
+    build_url(base_url <> "/top-headlines", [
       #("sources", sources_str),
       #("apiKey", api_key),
     ])
