@@ -1,5 +1,6 @@
 import api
 import gleam/list
+import gleam/string
 import lustre
 import lustre/effect
 import modem
@@ -81,6 +82,26 @@ fn update(
       let api_effect =
         api.top_headlines(
           country,
+          "a688e6494c444902b1fc9cb93c61d697",
+          fn(result) {
+            case result {
+              Ok(articles) ->
+                models.ArticlesLoaded(articles, list.length(articles))
+              Error(_) ->
+                models.HeadlinesFailed(
+                  "Failed to fetch headlines. Please try again.",
+                )
+            }
+          },
+        )
+      #(updated, api_effect)
+    }
+    models.LoadHeadlinesBySources(sources_str) -> {
+      let updated = models.Model(..model, loading: True)
+      let sources_list = string.split(sources_str, ",")
+      let api_effect =
+        api.top_headlines_by_source(
+          sources_list,
           "a688e6494c444902b1fc9cb93c61d697",
           fn(result) {
             case result {

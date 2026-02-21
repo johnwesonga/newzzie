@@ -36,6 +36,7 @@ pub type Source {
    SearchQueryChanged(String)
    SearchArticles(String)
    LoadTopHeadlines(String)
+   LoadHeadlinesBySources(String)
    LoadHeadlines
    ArticlesLoaded(List(Article), Int)
    HeadlinesFailed(String)

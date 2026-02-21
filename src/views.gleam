@@ -6,17 +6,33 @@ import lustre/element.{type Element}
 import lustre/element/html
 import lustre/event
 import models
+import routes
 
 // Render the main application view
 pub fn view(model: models.Model) -> Element(models.Msg) {
   html.div([attribute.class("flex flex-col min-h-screen bg-white")], [
     view_header(),
-    view_search_form(model),
+    case model.route {
+      routes.Home -> view_search_form(model)
+      routes.HeadlinesBySources(_) -> view_search_form(model)
+      _ -> element.none()
+    },
     html.div([attribute.class("flex-1 container mx-auto px-4 py-8 max-w-7xl")], [
-      view_content(model),
+      view_route_content(model),
     ]),
     view_footer(),
   ])
+}
+
+// Render content based on current route
+fn view_route_content(model: models.Model) -> Element(models.Msg) {
+  case model.route {
+    routes.Home -> view_content(model)
+    routes.Search(query) -> view_search_results(model, query)
+    routes.Headlines(country) -> view_headlines_results(model, country)
+    routes.HeadlinesBySources(sources) -> view_sources_results(model, sources)
+    routes.NotFound(_) -> view_not_found()
+  }
 }
 
 // Render header section
@@ -313,16 +329,61 @@ fn get_query_error(query: String) -> String {
   }
 }
 
-// Render footer
-fn view_footer() -> Element(models.Msg) {
-  html.footer([attribute.class("bg-gray-800 text-gray-300 py-8 mt-12")], [
-    html.div([attribute.class("container mx-auto px-4 max-w-7xl text-center")], [
-      html.p([attribute.class("mb-2")], [
-        element.text("Newzzie - Your daily news aggregator"),
-      ]),
-      html.p([attribute.class("text-gray-400 text-sm")], [
-        element.text("Built with Gleam and Lustre | Powered by NewsApi.org"),
-      ]),
-    ]),
-  ])
-}
+// Render search results page
+fn view_search_results(model: models.Model, query: String) -> Element(models.Msg) {
+   html.div([], [
+     html.h2([attribute.class("text-3xl font-bold text-gray-900 mb-8")], [
+       element.text("Search Results for: " <> query),
+     ]),
+     view_content(model),
+   ])
+ }
+
+ // Render headlines by country page
+ fn view_headlines_results(model: models.Model, country: String) -> Element(models.Msg) {
+   html.div([], [
+     html.h2([attribute.class("text-3xl font-bold text-gray-900 mb-8")], [
+       element.text("Top Headlines - " <> string.uppercase(country)),
+     ]),
+     view_content(model),
+   ])
+ }
+
+ // Render headlines by sources page
+ fn view_sources_results(model: models.Model, sources: String) -> Element(models.Msg) {
+   html.div([], [
+     html.h2([attribute.class("text-3xl font-bold text-gray-900 mb-8")], [
+       element.text("Headlines from Sources: " <> sources),
+     ]),
+     view_content(model),
+   ])
+ }
+
+ // Render 404 not found page
+ fn view_not_found() -> Element(models.Msg) {
+   html.div(
+     [attribute.class("text-center py-16")],
+     [
+       html.h2([attribute.class("text-4xl font-bold text-gray-900 mb-4")], [
+         element.text("404 - Page Not Found"),
+       ]),
+       html.p([attribute.class("text-gray-600 text-lg")], [
+         element.text("The page you're looking for doesn't exist."),
+       ]),
+     ],
+   )
+ }
+
+ // Render footer
+ fn view_footer() -> Element(models.Msg) {
+   html.footer([attribute.class("bg-gray-800 text-gray-300 py-8 mt-12")], [
+     html.div([attribute.class("container mx-auto px-4 max-w-7xl text-center")], [
+       html.p([attribute.class("mb-2")], [
+         element.text("Newzzie - Your daily news aggregator"),
+       ]),
+       html.p([attribute.class("text-gray-400 text-sm")], [
+         element.text("Built with Gleam and Lustre | Powered by NewsApi.org"),
+       ]),
+     ]),
+   ])
+ }
