@@ -37,24 +37,54 @@ fn view_route_content(model: models.Model) -> Element(models.Msg) {
 
 // Render header section
 fn view_header() -> Element(models.Msg) {
-  html.header(
-    [
-      attribute.class(
-        "bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-lg",
-      ),
-    ],
-    [
-      html.div([attribute.class("container mx-auto px-4 py-8 max-w-7xl")], [
-        html.h1([attribute.class("text-4xl font-bold mb-2")], [
-          element.text("Newzzie"),
-        ]),
-        html.p([attribute.class("text-blue-100 text-lg")], [
-          element.text("Browse and search news from around the world"),
-        ]),
-      ]),
-    ],
-  )
-}
+   html.header(
+     [
+       attribute.class(
+         "bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-lg",
+       ),
+     ],
+     [
+       html.div([attribute.class("container mx-auto px-4 max-w-7xl")], [
+         html.div([attribute.class("py-8")], [
+           html.h1([attribute.class("text-4xl font-bold mb-2")], [
+             element.text("Newzzie"),
+           ]),
+           html.p([attribute.class("text-blue-100 text-lg mb-6")], [
+             element.text("Browse and search news from around the world"),
+           ]),
+         ]),
+         view_nav(),
+       ]),
+     ],
+   )
+ }
+
+ // Render navigation
+ fn view_nav() -> Element(models.Msg) {
+   html.nav([attribute.class("flex gap-6 border-t border-blue-400 pt-4 pb-4")], [
+     html.a(
+       [
+         attribute.href("/"),
+         attribute.class("text-blue-100 hover:text-white transition-colors font-medium"),
+       ],
+       [element.text("Home")],
+     ),
+     html.a(
+       [
+         attribute.href("/headlines/us"),
+         attribute.class("text-blue-100 hover:text-white transition-colors font-medium"),
+       ],
+       [element.text("Top Headlines")],
+     ),
+     html.a(
+       [
+         attribute.href("/top-headlines/sources/bbc-news,cnn,fox-news"),
+         attribute.class("text-blue-100 hover:text-white transition-colors font-medium"),
+       ],
+       [element.text("Top Sources")],
+     ),
+   ])
+ }
 
 // Render search form
 fn view_search_form(model: models.Model) -> Element(models.Msg) {
