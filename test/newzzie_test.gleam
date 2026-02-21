@@ -3,6 +3,7 @@ import gleam/string
 import gleeunit
 import gleeunit/should
 import models
+import routes
 
 pub fn main() -> Nil {
   gleeunit.main()
@@ -112,14 +113,15 @@ pub fn multiple_sources_test() {
 
 // Test application initialization
 pub fn app_init_test() {
-  let model = models.init()
+   let model = models.init()
 
-  should.equal(model.loading, False)
-  should.equal(model.error, "")
-  should.equal(model.current_query, "")
-  should.equal(model.current_country, "us")
-  should.equal(list.length(model.articles), 0)
-}
+   should.equal(model.loading, False)
+   should.equal(model.error, "")
+   should.equal(model.current_query, "")
+   should.equal(model.current_country, "us")
+   should.equal(list.length(model.articles), 0)
+   should.equal(model.route, routes.Home)
+ }
 
 // Test model with loaded articles
 pub fn model_with_articles_test() {
@@ -155,6 +157,7 @@ pub fn model_with_articles_test() {
       error: "",
       current_query: "bitcoin",
       current_country: "us",
+      route: routes.Home,
     )
 
   should.equal(list.length(model.articles), 2)
@@ -171,6 +174,7 @@ pub fn model_loading_state_test() {
       error: "",
       current_query: "news",
       current_country: "gb",
+      route: routes.Home,
     )
 
   should.equal(model.loading, True)
@@ -187,6 +191,7 @@ pub fn model_with_error_test() {
       error: "Network error occurred",
       current_query: "",
       current_country: "us",
+      route: routes.Home,
     )
 
   should.equal(model.error, "Network error occurred")
