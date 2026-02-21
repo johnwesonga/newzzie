@@ -13,8 +13,19 @@ pub fn main() -> Nil {
 
 // Initialize the application state
 fn init(_: Nil) -> #(models.Model, effect.Effect(models.Msg)) {
-  #(models.init(), effect.none())
-}
+   let initial_model = models.init()
+   let api_effect =
+     api.top_headlines("us", "a688e6494c444902b1fc9cb93c61d697", fn(result) {
+       case result {
+         Ok(articles) -> models.ArticlesLoaded(articles, list.length(articles))
+         Error(_) ->
+           models.HeadlinesFailed(
+             "Failed to fetch headlines. Please try again.",
+           )
+       }
+     })
+   #(initial_model, api_effect)
+ }
 
 // Handle application messages and update state
 fn update(
