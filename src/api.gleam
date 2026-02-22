@@ -13,6 +13,29 @@ pub opaque type Error {
   RequestFailed(rsvp.Error)
 }
 
+/// Constructs a URL with query parameters.
+///
+/// Converts a base URL and a list of key-value parameter pairs into a complete
+/// URL with query string. Parameters are joined with "&" separators.
+///
+/// # Parameters
+///
+/// - `base` - The base URL (e.g., "https://newsapi.org/v2/everything")
+/// - `params` - A list of (key, value) tuples representing query parameters
+///
+/// # Returns
+///
+/// A complete URL with query string appended (e.g., "https://newsapi.org/v2/everything?q=bitcoin&apiKey=abc123")
+///
+/// # Example
+///
+/// ```gleam
+/// build_url("https://newsapi.org/v2/everything", [
+///   #("q", "bitcoin"),
+///   #("apiKey", "abc123"),
+/// ])
+/// // Returns: "https://newsapi.org/v2/everything?q=bitcoin&apiKey=abc123"
+/// ```
 fn build_url(base: String, params: List(#(String, String))) -> String {
   let query_parts =
     list.map(params, fn(param) {
