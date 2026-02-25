@@ -1,8 +1,6 @@
-import api
-import gleam/list
-import gleam/string
 import lustre
 import lustre/effect
+import messages
 import models
 import modem
 import routes
@@ -36,13 +34,10 @@ fn init(_: Nil) -> #(models.Model, effect.Effect(models.Msg)) {
 }
 
 fn api_effect_for_home() -> effect.Effect(models.Msg) {
-  api.top_headlines("us", "a688e6494c444902b1fc9cb93c61d697", fn(result) {
-    case result {
-      Ok(articles) -> models.ArticlesLoaded(articles, list.length(articles))
-      Error(_) ->
-        models.HeadlinesFailed("Failed to fetch headlines. Please try again.")
-    }
-  })
+  let load_headlines = models.LoadTopHeadlines("us")
+  messages.update(models.init(), load_headlines) |> fn(result) {
+    result.1
+  }
 }
 
 // Handle application messages and update state
@@ -50,87 +45,5 @@ fn update(
   model: models.Model,
   msg: models.Msg,
 ) -> #(models.Model, effect.Effect(models.Msg)) {
-  case msg {
-    models.UserNavigatedTo(route) -> #(
-      models.Model(..model, route: route),
-      effect.none(),
-    )
-    models.SearchQueryChanged(query) -> #(
-      models.Model(..model, current_query: query),
-      effect.none(),
-    )
-    models.SearchArticles(query) -> {
-      let updated = models.Model(..model, current_query: query, loading: True)
-      let api_effect =
-        api.everything(query, "a688e6494c444902b1fc9cb93c61d697", fn(result) {
-          case result {
-            Ok(articles) ->
-              models.ArticlesLoaded(articles, list.length(articles))
-            Error(_) ->
-              models.HeadlinesFailed(
-                "Failed to fetch articles. Please try again.",
-              )
-          }
-        })
-      #(updated, api_effect)
-    }
-    models.LoadTopHeadlines(country) -> {
-      let updated =
-        models.Model(..model, current_country: country, loading: True)
-      let api_effect =
-        api.top_headlines(
-          country,
-          "a688e6494c444902b1fc9cb93c61d697",
-          fn(result) {
-            case result {
-              Ok(articles) ->
-                models.ArticlesLoaded(articles, list.length(articles))
-              Error(_) ->
-                models.HeadlinesFailed(
-                  "Failed to fetch headlines. Please try again.",
-                )
-            }
-          },
-        )
-      #(updated, api_effect)
-    }
-    models.LoadHeadlinesBySources(sources_str) -> {
-      let updated = models.Model(..model, loading: True)
-      let sources_list = string.split(sources_str, ",")
-      let api_effect =
-        api.top_headlines_by_source(
-          sources_list,
-          "a688e6494c444902b1fc9cb93c61d697",
-          fn(result) {
-            case result {
-              Ok(articles) ->
-                models.ArticlesLoaded(articles, list.length(articles))
-              Error(_) ->
-                models.HeadlinesFailed(
-                  "Failed to fetch headlines. Please try again.",
-                )
-            }
-          },
-        )
-      #(updated, api_effect)
-    }
-    models.LoadHeadlines -> #(
-      models.Model(..model, loading: True),
-      effect.none(),
-    )
-    models.ArticlesLoaded(articles, count) -> #(
-      models.Model(
-        ..model,
-        articles: articles,
-        total_results: count,
-        loading: False,
-        error: "",
-      ),
-      effect.none(),
-    )
-    models.HeadlinesFailed(error) -> #(
-      models.Model(..model, loading: False, error: error),
-      effect.none(),
-    )
-  }
+  messages.update(model, msg)
 }

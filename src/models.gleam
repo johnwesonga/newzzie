@@ -1,4 +1,4 @@
-import routes
+import routes.{type Route}
 
 pub type Source {
   Source(id: String, name: String)
@@ -26,13 +26,13 @@ pub type Model {
     error: String,
     current_query: String,
     current_country: String,
-    route: routes.Route,
+    route: Route,
   )
 }
 
 // Application messages
 pub type Msg {
-  UserNavigatedTo(routes.Route)
+  UserNavigatedTo(Route)
   SearchQueryChanged(String)
   SearchArticles(String)
   LoadTopHeadlines(String)

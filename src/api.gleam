@@ -7,7 +7,7 @@ import lustre/effect
 import models
 import rsvp
 
-const base_url = "https://newsapi.org/v2"
+const base_url: String = "https://newsapi.org/v2"
 
 pub opaque type Error {
   RequestFailed(rsvp.Error)
