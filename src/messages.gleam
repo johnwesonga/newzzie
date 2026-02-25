@@ -24,14 +24,12 @@ pub fn update(
   msg: models.Msg,
 ) -> #(models.Model, effect.Effect(models.Msg)) {
   case msg {
-    models.UserNavigatedTo(route) ->
-      handle_user_navigated_to(model, route)
+    models.UserNavigatedTo(route) -> handle_user_navigated_to(model, route)
 
     models.SearchQueryChanged(query) ->
       handle_search_query_changed(model, query)
 
-    models.SearchArticles(query) ->
-      handle_search_articles(model, query)
+    models.SearchArticles(query) -> handle_search_articles(model, query)
 
     models.LoadTopHeadlines(country) ->
       handle_load_top_headlines(model, country)
@@ -39,14 +37,12 @@ pub fn update(
     models.LoadHeadlinesBySources(sources_str) ->
       handle_load_headlines_by_sources(model, sources_str)
 
-    models.LoadHeadlines ->
-      handle_load_headlines(model)
+    models.LoadHeadlines -> handle_load_headlines(model)
 
     models.ArticlesLoaded(articles, count) ->
       handle_articles_loaded(model, articles, count)
 
-    models.HeadlinesFailed(error) ->
-      handle_headlines_failed(model, error)
+    models.HeadlinesFailed(error) -> handle_headlines_failed(model, error)
   }
 }
 
@@ -75,12 +71,9 @@ fn handle_search_articles(
   let api_effect =
     api.everything(query, "a688e6494c444902b1fc9cb93c61d697", fn(result) {
       case result {
-        Ok(articles) ->
-          models.ArticlesLoaded(articles, list.length(articles))
+        Ok(articles) -> models.ArticlesLoaded(articles, list.length(articles))
         Error(_) ->
-          models.HeadlinesFailed(
-            "Failed to fetch articles. Please try again.",
-          )
+          models.HeadlinesFailed("Failed to fetch articles. Please try again.")
       }
     })
   #(updated, api_effect)
@@ -91,23 +84,15 @@ fn handle_load_top_headlines(
   model: models.Model,
   country: String,
 ) -> #(models.Model, effect.Effect(models.Msg)) {
-  let updated =
-    models.Model(..model, current_country: country, loading: True)
+  let updated = models.Model(..model, current_country: country, loading: True)
   let api_effect =
-    api.top_headlines(
-      country,
-      "a688e6494c444902b1fc9cb93c61d697",
-      fn(result) {
-        case result {
-          Ok(articles) ->
-            models.ArticlesLoaded(articles, list.length(articles))
-          Error(_) ->
-            models.HeadlinesFailed(
-              "Failed to fetch headlines. Please try again.",
-            )
-        }
-      },
-    )
+    api.top_headlines(country, "a688e6494c444902b1fc9cb93c61d697", fn(result) {
+      case result {
+        Ok(articles) -> models.ArticlesLoaded(articles, list.length(articles))
+        Error(_) ->
+          models.HeadlinesFailed("Failed to fetch headlines. Please try again.")
+      }
+    })
   #(updated, api_effect)
 }
 
@@ -124,8 +109,7 @@ fn handle_load_headlines_by_sources(
       "a688e6494c444902b1fc9cb93c61d697",
       fn(result) {
         case result {
-          Ok(articles) ->
-            models.ArticlesLoaded(articles, list.length(articles))
+          Ok(articles) -> models.ArticlesLoaded(articles, list.length(articles))
           Error(_) ->
             models.HeadlinesFailed(
               "Failed to fetch headlines. Please try again.",

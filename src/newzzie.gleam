@@ -35,9 +35,8 @@ fn init(_: Nil) -> #(models.Model, effect.Effect(models.Msg)) {
 
 fn api_effect_for_home() -> effect.Effect(models.Msg) {
   let load_headlines = models.LoadTopHeadlines("us")
-  messages.update(models.init(), load_headlines) |> fn(result) {
-    result.1
-  }
+  messages.update(models.init(), load_headlines)
+  |> fn(result) { result.1 }
 }
 
 // Handle application messages and update state
