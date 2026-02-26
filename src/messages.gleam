@@ -113,19 +113,13 @@ fn handle_load_headlines_by_sources(
   let updated = models.Model(..model, loading: True, current_page: 1)
   let sources_list = string.split(sources_str, ",")
   let api_effect =
-    api.top_headlines_by_source(
-      sources_list,
-      1,
-      fn(result) {
-        case result {
-          Ok(articles) -> models.ArticlesLoaded(articles, list.length(articles))
-          Error(_) ->
-            models.HeadlinesFailed(
-              "Failed to fetch headlines. Please try again.",
-            )
-        }
-      },
-    )
+    api.top_headlines_by_source(sources_list, 1, fn(result) {
+      case result {
+        Ok(articles) -> models.ArticlesLoaded(articles, list.length(articles))
+        Error(_) ->
+          models.HeadlinesFailed("Failed to fetch headlines. Please try again.")
+      }
+    })
   #(updated, api_effect)
 }
 
@@ -177,7 +171,9 @@ fn handle_go_to_page(
         case result {
           Ok(articles) -> models.ArticlesLoaded(articles, list.length(articles))
           Error(_) ->
-            models.HeadlinesFailed("Failed to fetch headlines. Please try again.")
+            models.HeadlinesFailed(
+              "Failed to fetch headlines. Please try again.",
+            )
         }
       })
     query ->
@@ -186,7 +182,9 @@ fn handle_go_to_page(
         case result {
           Ok(articles) -> models.ArticlesLoaded(articles, list.length(articles))
           Error(_) ->
-            models.HeadlinesFailed("Failed to fetch articles. Please try again.")
+            models.HeadlinesFailed(
+              "Failed to fetch articles. Please try again.",
+            )
         }
       })
   }

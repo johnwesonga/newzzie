@@ -429,10 +429,8 @@ fn view_pagination(model: models.Model) -> Element(models.Msg) {
           attribute.class(
             "px-4 py-2 rounded-lg font-semibold transition-colors "
             <> case model.current_page {
-              1 ->
-                "bg-gray-300 text-gray-500 cursor-not-allowed"
-              _ ->
-                "bg-blue-600 text-white hover:bg-blue-700 cursor-pointer"
+              1 -> "bg-gray-300 text-gray-500 cursor-not-allowed"
+              _ -> "bg-blue-600 text-white hover:bg-blue-700 cursor-pointer"
             },
           ),
           attribute.disabled(model.current_page == 1),
