@@ -43,6 +43,8 @@ pub fn update(
       handle_articles_loaded(model, articles, count)
 
     models.HeadlinesFailed(error) -> handle_headlines_failed(model, error)
+
+    models.GoToPage(page) -> handle_go_to_page(model, page)
   }
 }
 
@@ -67,9 +69,10 @@ fn handle_search_articles(
   model: models.Model,
   query: String,
 ) -> #(models.Model, effect.Effect(models.Msg)) {
-  let updated = models.Model(..model, current_query: query, loading: True)
+  let updated =
+    models.Model(..model, current_query: query, loading: True, current_page: 1)
   let api_effect =
-    api.everything(query, "a688e6494c444902b1fc9cb93c61d697", fn(result) {
+    api.everything(query, 1, fn(result) {
       case result {
         Ok(articles) -> models.ArticlesLoaded(articles, list.length(articles))
         Error(_) ->
@@ -84,9 +87,15 @@ fn handle_load_top_headlines(
   model: models.Model,
   country: String,
 ) -> #(models.Model, effect.Effect(models.Msg)) {
-  let updated = models.Model(..model, current_country: country, loading: True)
+  let updated =
+    models.Model(
+      ..model,
+      current_country: country,
+      loading: True,
+      current_page: 1,
+    )
   let api_effect =
-    api.top_headlines(country, "a688e6494c444902b1fc9cb93c61d697", fn(result) {
+    api.top_headlines(country, 1, fn(result) {
       case result {
         Ok(articles) -> models.ArticlesLoaded(articles, list.length(articles))
         Error(_) ->
@@ -101,12 +110,12 @@ fn handle_load_headlines_by_sources(
   model: models.Model,
   sources_str: String,
 ) -> #(models.Model, effect.Effect(models.Msg)) {
-  let updated = models.Model(..model, loading: True)
+  let updated = models.Model(..model, loading: True, current_page: 1)
   let sources_list = string.split(sources_str, ",")
   let api_effect =
     api.top_headlines_by_source(
       sources_list,
-      "a688e6494c444902b1fc9cb93c61d697",
+      1,
       fn(result) {
         case result {
           Ok(articles) -> models.ArticlesLoaded(articles, list.length(articles))
@@ -151,4 +160,36 @@ fn handle_headlines_failed(
   error: String,
 ) -> #(models.Model, effect.Effect(models.Msg)) {
   #(models.Model(..model, loading: False, error: error), effect.none())
+}
+
+/// Handles pagination navigation.
+fn handle_go_to_page(
+  model: models.Model,
+  page: Int,
+) -> #(models.Model, effect.Effect(models.Msg)) {
+  let updated = models.Model(..model, loading: True, current_page: page)
+
+  // Determine which API to call based on current query/country
+  let api_effect = case model.current_query {
+    "" ->
+      // No active search, use top headlines
+      api.top_headlines(model.current_country, page, fn(result) {
+        case result {
+          Ok(articles) -> models.ArticlesLoaded(articles, list.length(articles))
+          Error(_) ->
+            models.HeadlinesFailed("Failed to fetch headlines. Please try again.")
+        }
+      })
+    query ->
+      // Active search query, use search
+      api.everything(query, page, fn(result) {
+        case result {
+          Ok(articles) -> models.ArticlesLoaded(articles, list.length(articles))
+          Error(_) ->
+            models.HeadlinesFailed("Failed to fetch articles. Please try again.")
+        }
+      })
+  }
+
+  #(updated, api_effect)
 }

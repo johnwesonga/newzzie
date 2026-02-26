@@ -27,6 +27,8 @@ pub type Model {
     current_query: String,
     current_country: String,
     route: Route,
+    current_page: Int,
+    page_size: Int,
   )
 }
 
@@ -40,6 +42,7 @@ pub type Msg {
   LoadHeadlines
   ArticlesLoaded(List(Article), Int)
   HeadlinesFailed(String)
+  GoToPage(Int)
 }
 
 // Initialize the application with empty state
@@ -52,5 +55,7 @@ pub fn init() -> Model {
     current_query: "",
     current_country: "us",
     route: routes.Home,
+    current_page: 1,
+    page_size: 20,
   )
 }

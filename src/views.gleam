@@ -224,6 +224,7 @@ fn view_articles(model: models.Model) -> Element(models.Msg) {
       [attribute.class("grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6")],
       list.map(model.articles, view_article),
     ),
+    view_pagination(model),
   ])
 }
 
@@ -416,6 +417,43 @@ fn view_not_found() -> Element(models.Msg) {
       element.text("The page you're looking for doesn't exist."),
     ]),
   ])
+}
+
+// Render pagination controls
+fn view_pagination(model: models.Model) -> Element(models.Msg) {
+  html.div(
+    [attribute.class("flex justify-center items-center gap-4 mt-12 mb-8")],
+    [
+      html.button(
+        [
+          attribute.class(
+            "px-4 py-2 rounded-lg font-semibold transition-colors "
+            <> case model.current_page {
+              1 ->
+                "bg-gray-300 text-gray-500 cursor-not-allowed"
+              _ ->
+                "bg-blue-600 text-white hover:bg-blue-700 cursor-pointer"
+            },
+          ),
+          attribute.disabled(model.current_page == 1),
+          event.on_click(models.GoToPage(model.current_page - 1)),
+        ],
+        [element.text("← Previous")],
+      ),
+      html.span([attribute.class("text-gray-700 font-semibold")], [
+        element.text("Page " <> int.to_string(model.current_page)),
+      ]),
+      html.button(
+        [
+          attribute.class(
+            "px-4 py-2 rounded-lg font-semibold transition-colors bg-blue-600 text-white hover:bg-blue-700 cursor-pointer",
+          ),
+          event.on_click(models.GoToPage(model.current_page + 1)),
+        ],
+        [element.text("Next →")],
+      ),
+    ],
+  )
 }
 
 // Render footer

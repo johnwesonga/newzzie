@@ -158,6 +158,8 @@ pub fn model_with_articles_test() {
       current_query: "bitcoin",
       current_country: "us",
       route: routes.Home,
+      current_page: 1,
+      page_size: 20,
     )
 
   should.equal(list.length(model.articles), 2)
@@ -175,6 +177,8 @@ pub fn model_loading_state_test() {
       current_query: "news",
       current_country: "gb",
       route: routes.Home,
+      current_page: 1,
+      page_size: 20,
     )
 
   should.equal(model.loading, True)
@@ -192,6 +196,8 @@ pub fn model_with_error_test() {
       current_query: "",
       current_country: "us",
       route: routes.Home,
+      current_page: 1,
+      page_size: 20,
     )
 
   should.equal(model.error, "Network error occurred")

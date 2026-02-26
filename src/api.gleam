@@ -1,4 +1,5 @@
 import gleam/dynamic/decode
+import gleam/int
 import gleam/list
 import gleam/option
 import gleam/result
@@ -8,6 +9,8 @@ import models
 import rsvp
 
 const base_url: String = "https://newsapi.org/v2"
+
+const api_key: String = "a688e6494c444902b1fc9cb93c61d697"
 
 pub opaque type Error {
   RequestFailed(rsvp.Error)
@@ -51,7 +54,7 @@ fn build_url(base: String, params: List(#(String, String))) -> String {
 /// # Parameters
 ///
 /// - `query` - The search query string to find relevant articles
-/// - `api_key` - The API key for authenticating with the news service
+/// - `page` - The page number for pagination (1-indexed)
 /// - `on_response` - Callback function to handle the API response containing a list of articles or an error
 ///
 /// # Returns
@@ -60,12 +63,14 @@ fn build_url(base: String, params: List(#(String, String))) -> String {
 /// Errors are wrapped in the RequestFailed variant.
 pub fn everything(
   query: String,
-  api_key: String,
+  page: Int,
   on_response: fn(Result(List(models.Article), Error)) -> msg,
 ) -> effect.Effect(msg) {
   let url =
     build_url(base_url <> "/everything", [
       #("q", query),
+      #("page", int.to_string(page)),
+      #("pageSize", "20"),
       #("apiKey", api_key),
     ])
 
@@ -82,7 +87,7 @@ pub fn everything(
 /// # Arguments
 ///
 /// * `country` - The country code (e.g., "us", "gb") for which to fetch headlines
-/// * `api_key` - The API key for authentication with the NewsAPI service
+/// * `page` - The page number for pagination (1-indexed)
 /// * `on_response` - A callback function that handles the response, receiving either
 ///   a list of articles or a request error
 ///
@@ -97,12 +102,14 @@ pub fn everything(
 /// before being passed to the callback.
 pub fn top_headlines(
   country: String,
-  api_key: String,
+  page: Int,
   on_response: fn(Result(List(models.Article), Error)) -> msg,
 ) -> effect.Effect(msg) {
   let url =
     build_url(base_url <> "/top-headlines", [
       #("country", country),
+      #("page", int.to_string(page)),
+      #("pageSize", "20"),
       #("apiKey", api_key),
     ])
 
@@ -119,7 +126,7 @@ pub fn top_headlines(
 /// # Arguments
 ///
 /// - `sources` - A list of news source identifiers to fetch headlines from
-/// - `api_key` - The API key for authenticating with the news service
+/// - `page` - The page number for pagination (1-indexed)
 /// - `on_response` - A callback function that handles the response, receiving either
 ///   a list of articles or an error
 ///
@@ -129,13 +136,15 @@ pub fn top_headlines(
 /// from the specified sources and pass the result to the provided callback.
 pub fn top_headlines_by_source(
   sources: List(String),
-  api_key: String,
+  page: Int,
   on_response: fn(Result(List(models.Article), Error)) -> msg,
 ) -> effect.Effect(msg) {
   let sources_str = string.join(sources, ",")
   let url =
     build_url(base_url <> "/top-headlines", [
       #("sources", sources_str),
+      #("page", int.to_string(page)),
+      #("pageSize", "20"),
       #("apiKey", api_key),
     ])
 
