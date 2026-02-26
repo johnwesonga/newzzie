@@ -21,20 +21,15 @@ fn init(_: Nil) -> #(models.Model, effect.Effect(models.Msg)) {
 
   let initial_model = models.Model(..models.init(), route: route)
 
-  // Dispatch UserNavigatedTo for the initial route to load appropriate data
-  let initial_navigation_effect =
-    effect.from(fn(dispatch) { dispatch(models.UserNavigatedTo(route)) })
-
-  let effects = [
+  // Use modem to handle all route changes including initial load
+  let router_effect =
     modem.init(fn(uri) {
       uri
       |> routes.parse_route
       |> models.UserNavigatedTo
-    }),
-    initial_navigation_effect,
-  ]
+    })
 
-  #(initial_model, effect.batch(effects))
+  #(initial_model, router_effect)
 }
 
 // Handle application messages and update state
