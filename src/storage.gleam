@@ -1,13 +1,18 @@
 import gleam/int
 import gleam/io
+import gleam/string
 
-/// Store articles in localStorage with a cache key
+/// Cache TTL in seconds (default: 1 hour = 3600 seconds)
+const cache_ttl_seconds: Int = 3600
+
+/// Store articles in localStorage with a cache key and TTL
 pub fn cache_articles(key: String, json_str: String) -> Nil {
   io.println("[Storage] Caching with key: " <> key)
-  cache_string(key, json_str)
+  let cache_data = create_cache_entry(json_str)
+  cache_string(key, cache_data)
 }
 
-/// Retrieve cached articles from localStorage
+/// Retrieve cached articles from localStorage if still valid (within TTL)
 pub fn get_cached_articles(key: String) -> Result(String, Nil) {
   io.println("[Storage] Retrieving cache for key: " <> key)
   case get_string(key) {
@@ -15,9 +20,31 @@ pub fn get_cached_articles(key: String) -> Result(String, Nil) {
       io.println("[Storage] Cache miss for key: " <> key)
       Error(Nil)
     }
-    json_str -> {
-      io.println("[Storage] Cache hit for key: " <> key)
-      Ok(json_str)
+    cache_data -> {
+      case is_cache_valid(cache_data) {
+        True -> {
+          case extract_json_from_cache(cache_data) {
+            Ok(json_str) -> {
+              io.println("[Storage] Cache hit for key: " <> key)
+              Ok(json_str)
+            }
+            Error(_) -> {
+              io.println("[Storage] Cache corrupted for key: " <> key)
+              Error(Nil)
+            }
+          }
+        }
+        False -> {
+          io.println(
+            "[Storage] Cache expired for key: "
+            <> key
+            <> " (TTL: "
+            <> int.to_string(cache_ttl_seconds)
+            <> "s)",
+          )
+          Error(Nil)
+        }
+      }
     }
   }
 }
@@ -47,3 +74,49 @@ fn get_string(key: String) -> String
 
 @external(javascript, "./storage_ffi.mjs", "clearAll")
 fn clear_all_storage() -> Nil
+
+@external(javascript, "./storage_ffi.mjs", "getCurrentTimestamp")
+fn get_current_timestamp() -> Int
+
+@external(javascript, "./storage_ffi.mjs", "isCacheValid")
+fn is_cache_valid_external(cache_data: String, ttl_seconds: Int) -> Bool
+
+// Helper functions for TTL-based cache
+
+/// Create a cache entry with timestamp and TTL metadata
+fn create_cache_entry(json_str: String) -> String {
+  let timestamp = get_current_timestamp()
+  // Format: {"t":timestamp,"d":json_data}
+  "{\"t\":" <> int.to_string(timestamp) <> ",\"d\":" <> json_str <> "}"
+}
+
+/// Check if cached entry is still valid (not expired)
+fn is_cache_valid(cache_data: String) -> Bool {
+  is_cache_valid_external(cache_data, cache_ttl_seconds)
+}
+
+/// Extract the JSON data from a cache entry
+fn extract_json_from_cache(cache_data: String) -> Result(String, Nil) {
+  // Find the "d": position and extract everything after it until the last }
+  case string.contains(cache_data, "\"d\":") {
+    False -> Error(Nil)
+    True -> {
+      let parts = string.split(cache_data, "\"d\":")
+      case parts {
+        [_, rest] -> {
+          // Remove trailing }
+          let trimmed = string.trim_end(rest)
+          case string.ends_with(trimmed, "}") {
+            True -> {
+              let json_part =
+                string.slice(trimmed, 0, string.length(trimmed) - 1)
+              Ok(json_part)
+            }
+            False -> Error(Nil)
+          }
+        }
+        _ -> Error(Nil)
+      }
+    }
+  }
+}
