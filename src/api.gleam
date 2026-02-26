@@ -55,7 +55,7 @@ fn build_url(base: String, params: List(#(String, String))) -> String {
 ///
 /// - `query` - The search query string to find relevant articles
 /// - `page` - The page number for pagination (1-indexed)
-/// - `on_response` - Callback function to handle the API response containing a list of articles or an error
+/// - `on_response` - Callback function to handle the API response containing a list of articles, count, and raw JSON
 ///
 /// # Returns
 ///
@@ -64,7 +64,7 @@ fn build_url(base: String, params: List(#(String, String))) -> String {
 pub fn everything(
   query: String,
   page: Int,
-  on_response: fn(Result(List(models.Article), Error)) -> msg,
+  on_response: fn(Result(#(List(models.Article), String), Error)) -> msg,
 ) -> effect.Effect(msg) {
   let url =
     build_url(base_url <> "/everything", [
@@ -76,7 +76,7 @@ pub fn everything(
 
   rsvp.get(
     url,
-    rsvp.expect_json(articles_decoder(), fn(result) {
+    rsvp.expect_json(articles_with_raw_decoder(), fn(result) {
       on_response(result.map_error(result, fn(err) { RequestFailed(err) }))
     }),
   )
@@ -89,7 +89,7 @@ pub fn everything(
 /// * `country` - The country code (e.g., "us", "gb") for which to fetch headlines
 /// * `page` - The page number for pagination (1-indexed)
 /// * `on_response` - A callback function that handles the response, receiving either
-///   a list of articles or a request error
+///   a list of articles and raw JSON or a request error
 ///
 /// # Returns
 ///
@@ -103,7 +103,7 @@ pub fn everything(
 pub fn top_headlines(
   country: String,
   page: Int,
-  on_response: fn(Result(List(models.Article), Error)) -> msg,
+  on_response: fn(Result(#(List(models.Article), String), Error)) -> msg,
 ) -> effect.Effect(msg) {
   let url =
     build_url(base_url <> "/top-headlines", [
@@ -115,7 +115,7 @@ pub fn top_headlines(
 
   rsvp.get(
     url,
-    rsvp.expect_json(articles_decoder(), fn(result) {
+    rsvp.expect_json(articles_with_raw_decoder(), fn(result) {
       on_response(result.map_error(result, fn(err) { RequestFailed(err) }))
     }),
   )
@@ -128,7 +128,7 @@ pub fn top_headlines(
 /// - `sources` - A list of news source identifiers to fetch headlines from
 /// - `page` - The page number for pagination (1-indexed)
 /// - `on_response` - A callback function that handles the response, receiving either
-///   a list of articles or an error
+///   a list of articles and raw JSON or an error
 ///
 /// # Returns
 ///
@@ -137,7 +137,7 @@ pub fn top_headlines(
 pub fn top_headlines_by_source(
   sources: List(String),
   page: Int,
-  on_response: fn(Result(List(models.Article), Error)) -> msg,
+  on_response: fn(Result(#(List(models.Article), String), Error)) -> msg,
 ) -> effect.Effect(msg) {
   let sources_str = string.join(sources, ",")
   let url =
@@ -150,24 +150,24 @@ pub fn top_headlines_by_source(
 
   rsvp.get(
     url,
-    rsvp.expect_json(articles_decoder(), fn(result) {
+    rsvp.expect_json(articles_with_raw_decoder(), fn(result) {
       on_response(result.map_error(result, fn(err) { RequestFailed(err) }))
     }),
   )
 }
 
 // Decoders
-/// Decodes a JSON response containing a list of articles.
+/// Decodes a JSON response containing a list of articles along with the raw JSON string.
 ///
-/// Expects a JSON object with an "articles" field containing an array of article objects.
-/// Each article in the array is decoded using the `article_decoder()`.
-///
-/// # Returns
-///
-/// A `Decoder` that produces a `List(Article)` when successfully decoded.
-fn articles_decoder() -> decode.Decoder(List(models.Article)) {
+/// This decoder captures both the parsed articles and the original JSON string
+/// for caching purposes.
+fn articles_with_raw_decoder() -> decode.Decoder(
+  #(List(models.Article), String),
+) {
   use articles <- decode.field("articles", decode.list(article_decoder()))
-  decode.success(articles)
+  // Store raw JSON by serializing articles back
+  let json_str = articles_to_json_string(articles)
+  decode.success(#(articles, json_str))
 }
 
 /// Decodes a JSON object into an Article model.
@@ -218,4 +218,40 @@ fn source_decoder() -> decode.Decoder(models.Source) {
   use name <- decode.field("name", decode.string)
 
   decode.success(models.Source(id: option.unwrap(id, ""), name: name))
+}
+
+/// Serialize articles back to JSON string for caching
+fn articles_to_json_string(articles: List(models.Article)) -> String {
+  let json_articles =
+    list.map(articles, fn(article) {
+      "{\"source\":"
+      <> "{\"id\":\""
+      <> article.source.id
+      <> "\",\"name\":\""
+      <> article.source.name
+      <> "\"},"
+      <> "\"author\":\""
+      <> article.author
+      <> "\","
+      <> "\"title\":\""
+      <> article.title
+      <> "\","
+      <> "\"description\":\""
+      <> article.description
+      <> "\","
+      <> "\"url\":\""
+      <> article.url
+      <> "\","
+      <> "\"urlToImage\":\""
+      <> article.url_to_image
+      <> "\","
+      <> "\"publishedAt\":\""
+      <> article.published_at
+      <> "\","
+      <> "\"content\":\""
+      <> article.content
+      <> "\"}"
+    })
+
+  "[" <> string.join(json_articles, ",") <> "]"
 }

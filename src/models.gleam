@@ -40,7 +40,7 @@ pub type Msg {
   LoadTopHeadlines(String)
   LoadHeadlinesBySources(String)
   LoadHeadlines
-  ArticlesLoaded(List(Article), Int)
+  ArticlesLoaded(List(Article), Int, String)
   HeadlinesFailed(String)
   GoToPage(Int)
   CachedArticlesLoaded(List(Article), Int)

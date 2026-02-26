@@ -42,8 +42,8 @@ pub fn update(
 
     models.LoadHeadlines -> handle_load_headlines(model)
 
-    models.ArticlesLoaded(articles, count) ->
-      handle_articles_loaded(model, articles, count)
+    models.ArticlesLoaded(articles, count, json_str) ->
+      handle_articles_loaded(model, articles, count, json_str)
 
     models.HeadlinesFailed(error) -> handle_headlines_failed(model, error)
 
@@ -80,7 +80,8 @@ fn handle_search_articles(
   let api_effect =
     api.everything(query, 1, fn(result) {
       case result {
-        Ok(articles) -> models.ArticlesLoaded(articles, list.length(articles))
+        Ok(#(articles, json_str)) ->
+          models.ArticlesLoaded(articles, list.length(articles), json_str)
         Error(_) ->
           models.HeadlinesFailed("Failed to fetch articles. Please try again.")
       }
@@ -103,7 +104,8 @@ fn handle_load_top_headlines(
   let api_effect =
     api.top_headlines(country, 1, fn(result) {
       case result {
-        Ok(articles) -> models.ArticlesLoaded(articles, list.length(articles))
+        Ok(#(articles, json_str)) ->
+          models.ArticlesLoaded(articles, list.length(articles), json_str)
         Error(_) ->
           models.HeadlinesFailed("Failed to fetch headlines. Please try again.")
       }
@@ -121,7 +123,8 @@ fn handle_load_headlines_by_sources(
   let api_effect =
     api.top_headlines_by_source(sources_list, 1, fn(result) {
       case result {
-        Ok(articles) -> models.ArticlesLoaded(articles, list.length(articles))
+        Ok(#(articles, json_str)) ->
+          models.ArticlesLoaded(articles, list.length(articles), json_str)
         Error(_) ->
           models.HeadlinesFailed("Failed to fetch headlines. Please try again.")
       }
@@ -141,7 +144,15 @@ fn handle_articles_loaded(
   model: models.Model,
   articles: List(models.Article),
   count: Int,
+  json_str: String,
 ) -> #(models.Model, effect.Effect(models.Msg)) {
+  // Cache articles for future retrieval
+  let cache_key = case model.current_query {
+    "" -> storage.headlines_cache_key(model.current_country, model.current_page)
+    query -> storage.search_cache_key(query, model.current_page)
+  }
+  storage.cache_articles(cache_key, json_str)
+
   #(
     models.Model(
       ..model,
@@ -186,8 +197,8 @@ fn handle_go_to_page(
           // No active search, use top headlines
           api.top_headlines(model.current_country, page, fn(result) {
             case result {
-              Ok(articles) ->
-                models.ArticlesLoaded(articles, list.length(articles))
+              Ok(#(articles, json_str)) ->
+                models.ArticlesLoaded(articles, list.length(articles), json_str)
               Error(_) ->
                 models.HeadlinesFailed(
                   "Failed to fetch headlines. Please try again.",
@@ -198,8 +209,8 @@ fn handle_go_to_page(
           // Active search query, use search
           api.everything(query, page, fn(result) {
             case result {
-              Ok(articles) ->
-                models.ArticlesLoaded(articles, list.length(articles))
+              Ok(#(articles, json_str)) ->
+                models.ArticlesLoaded(articles, list.length(articles), json_str)
               Error(_) ->
                 models.HeadlinesFailed(
                   "Failed to fetch articles. Please try again.",
@@ -217,8 +228,8 @@ fn handle_go_to_page(
           // No active search, use top headlines
           api.top_headlines(model.current_country, page, fn(result) {
             case result {
-              Ok(articles) ->
-                models.ArticlesLoaded(articles, list.length(articles))
+              Ok(#(articles, json_str)) ->
+                models.ArticlesLoaded(articles, list.length(articles), json_str)
               Error(_) ->
                 models.HeadlinesFailed(
                   "Failed to fetch headlines. Please try again.",
@@ -229,8 +240,8 @@ fn handle_go_to_page(
           // Active search query, use search
           api.everything(query, page, fn(result) {
             case result {
-              Ok(articles) ->
-                models.ArticlesLoaded(articles, list.length(articles))
+              Ok(#(articles, json_str)) ->
+                models.ArticlesLoaded(articles, list.length(articles), json_str)
               Error(_) ->
                 models.HeadlinesFailed(
                   "Failed to fetch articles. Please try again.",
