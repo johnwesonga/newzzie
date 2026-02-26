@@ -43,6 +43,7 @@ pub type Msg {
   ArticlesLoaded(List(Article), Int)
   HeadlinesFailed(String)
   GoToPage(Int)
+  CachedArticlesLoaded(List(Article), Int)
 }
 
 // Initialize the application with empty state

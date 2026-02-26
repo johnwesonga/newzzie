@@ -4,6 +4,7 @@ import gleam/string
 import lustre/effect
 import models
 import routes
+import storage
 
 /// Handles all application messages and returns the updated model with effects.
 ///
@@ -45,6 +46,9 @@ pub fn update(
     models.HeadlinesFailed(error) -> handle_headlines_failed(model, error)
 
     models.GoToPage(page) -> handle_go_to_page(model, page)
+
+    models.CachedArticlesLoaded(articles, count) ->
+      handle_cached_articles_loaded(model, articles, count)
   }
 }
 
@@ -163,31 +167,93 @@ fn handle_go_to_page(
 ) -> #(models.Model, effect.Effect(models.Msg)) {
   let updated = models.Model(..model, loading: True, current_page: page)
 
-  // Determine which API to call based on current query/country
-  let api_effect = case model.current_query {
-    "" ->
-      // No active search, use top headlines
-      api.top_headlines(model.current_country, page, fn(result) {
-        case result {
-          Ok(articles) -> models.ArticlesLoaded(articles, list.length(articles))
-          Error(_) ->
-            models.HeadlinesFailed(
-              "Failed to fetch headlines. Please try again.",
-            )
-        }
-      })
-    query ->
-      // Active search query, use search
-      api.everything(query, page, fn(result) {
-        case result {
-          Ok(articles) -> models.ArticlesLoaded(articles, list.length(articles))
-          Error(_) ->
-            models.HeadlinesFailed(
-              "Failed to fetch articles. Please try again.",
-            )
-        }
-      })
+  // Try to load from cache first
+  let cache_key = case model.current_query {
+    "" -> storage.headlines_cache_key(model.current_country, page)
+    query -> storage.search_cache_key(query, page)
   }
 
-  #(updated, api_effect)
+  case storage.get_cached_articles(cache_key) {
+    Ok(_) -> {
+      // Cache exists, fetch fresh data to stay current
+      // In future, could implement smart cache validation
+      let api_effect = case model.current_query {
+        "" ->
+          // No active search, use top headlines
+          api.top_headlines(model.current_country, page, fn(result) {
+            case result {
+              Ok(articles) ->
+                models.ArticlesLoaded(articles, list.length(articles))
+              Error(_) ->
+                models.HeadlinesFailed(
+                  "Failed to fetch headlines. Please try again.",
+                )
+            }
+          })
+        query ->
+          // Active search query, use search
+          api.everything(query, page, fn(result) {
+            case result {
+              Ok(articles) ->
+                models.ArticlesLoaded(articles, list.length(articles))
+              Error(_) ->
+                models.HeadlinesFailed(
+                  "Failed to fetch articles. Please try again.",
+                )
+            }
+          })
+      }
+
+      #(updated, api_effect)
+    }
+    Error(_) -> {
+      // Cache miss, fetch from API
+      let api_effect = case model.current_query {
+        "" ->
+          // No active search, use top headlines
+          api.top_headlines(model.current_country, page, fn(result) {
+            case result {
+              Ok(articles) ->
+                models.ArticlesLoaded(articles, list.length(articles))
+              Error(_) ->
+                models.HeadlinesFailed(
+                  "Failed to fetch headlines. Please try again.",
+                )
+            }
+          })
+        query ->
+          // Active search query, use search
+          api.everything(query, page, fn(result) {
+            case result {
+              Ok(articles) ->
+                models.ArticlesLoaded(articles, list.length(articles))
+              Error(_) ->
+                models.HeadlinesFailed(
+                  "Failed to fetch articles. Please try again.",
+                )
+            }
+          })
+      }
+
+      #(updated, api_effect)
+    }
+  }
+}
+
+/// Handles loading cached articles.
+fn handle_cached_articles_loaded(
+  model: models.Model,
+  articles: List(models.Article),
+  count: Int,
+) -> #(models.Model, effect.Effect(models.Msg)) {
+  #(
+    models.Model(
+      ..model,
+      articles: articles,
+      total_results: count,
+      loading: False,
+      error: "",
+    ),
+    effect.none(),
+  )
 }
