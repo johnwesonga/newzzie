@@ -31,6 +31,8 @@ fn view_route_content(model: models.Model) -> Element(models.Msg) {
     routes.Search(query) -> view_search_results(model, query)
     routes.Headlines(country) -> view_headlines_results(model, country)
     routes.HeadlinesBySources(sources) -> view_sources_results(model, sources)
+    routes.About -> view_not_found()
+    // Placeholder for about page
     routes.NotFound(_) -> view_not_found()
   }
 }

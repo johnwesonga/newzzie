@@ -5,6 +5,7 @@ pub type Route {
   Search(query: String)
   Headlines(country: String)
   HeadlinesBySources(sources: String)
+  About
   NotFound(uri: Uri)
 }
 
@@ -14,6 +15,7 @@ pub fn parse_route(uri: Uri) -> Route {
     ["search", query] -> Search(query)
     ["headlines", country] -> Headlines(country)
     ["top-headlines", "sources", sources] -> HeadlinesBySources(sources)
+    ["about"] -> About
     _ -> NotFound(uri)
   }
 }
