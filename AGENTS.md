@@ -14,6 +14,9 @@ gleam test
 
 # Run single test file
 gleam test --test-module models_test
+
+# Format code (must run before commit)
+gleam format
 ```
 
 ## Architecture & Structure

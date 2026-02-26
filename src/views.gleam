@@ -31,8 +31,7 @@ fn view_route_content(model: models.Model) -> Element(models.Msg) {
     routes.Search(query) -> view_search_results(model, query)
     routes.Headlines(country) -> view_headlines_results(model, country)
     routes.HeadlinesBySources(sources) -> view_sources_results(model, sources)
-    routes.About -> view_not_found()
-    // Placeholder for about page
+    routes.About -> view_about()
     routes.NotFound(_) -> view_not_found()
   }
 }
@@ -90,6 +89,15 @@ fn view_nav() -> Element(models.Msg) {
         ),
       ],
       [element.text("Top Sources")],
+    ),
+    html.a(
+      [
+        attribute.href("/about"),
+        attribute.class(
+          "text-blue-100 hover:text-white transition-colors font-medium",
+        ),
+      ],
+      [element.text("About")],
     ),
   ])
 }
@@ -421,6 +429,69 @@ fn view_not_found() -> Element(models.Msg) {
     ]),
     html.p([attribute.class("text-gray-600 text-lg")], [
       element.text("The page you're looking for doesn't exist."),
+    ]),
+  ])
+}
+
+// Render about page
+fn view_about() -> Element(models.Msg) {
+  html.div([attribute.class("max-w-3xl mx-auto py-12")], [
+    html.h1([attribute.class("text-4xl font-bold text-gray-900 mb-8")], [
+      element.text("About Newzzie"),
+    ]),
+    html.section([attribute.class("space-y-6 text-gray-700")], [
+      html.div([], [
+        html.h2([attribute.class("text-2xl font-bold text-gray-900 mb-3")], [
+          element.text("What is Newzzie?"),
+        ]),
+        html.p([attribute.class("text-lg")], [
+          element.text(
+            "Newzzie is a modern news aggregator application built with Gleam and Lustre. It helps you stay informed by providing access to thousands of news articles from trusted sources around the world.",
+          ),
+        ]),
+      ]),
+      html.div([], [
+        html.h2([attribute.class("text-2xl font-bold text-gray-900 mb-3")], [
+          element.text("Features"),
+        ]),
+        html.ul([attribute.class("list-disc list-inside space-y-2")], [
+          html.li([], [
+            element.text("Search news articles by keyword"),
+          ]),
+          html.li([], [
+            element.text("Browse top headlines by country"),
+          ]),
+          html.li([], [
+            element.text("Discover news from specific sources"),
+          ]),
+          html.li([], [
+            element.text("Pagination to explore more articles"),
+          ]),
+          html.li([], [
+            element.text("Fast and responsive user interface"),
+          ]),
+        ]),
+      ]),
+      html.div([], [
+        html.h2([attribute.class("text-2xl font-bold text-gray-900 mb-3")], [
+          element.text("Technology"),
+        ]),
+        html.p([attribute.class("text-lg")], [
+          element.text(
+            "Newzzie is built with Gleam, a statically-typed functional programming language that compiles to JavaScript. We use Lustre for the web framework, rsvp for HTTP requests, and NewsAPI for news data.",
+          ),
+        ]),
+      ]),
+      html.div([], [
+        html.h2([attribute.class("text-2xl font-bold text-gray-900 mb-3")], [
+          element.text("Data Source"),
+        ]),
+        html.p([attribute.class("text-lg")], [
+          element.text(
+            "News data is provided by NewsAPI.org, a comprehensive API that aggregates articles from thousands of news sources worldwide.",
+          ),
+        ]),
+      ]),
     ]),
   ])
 }
