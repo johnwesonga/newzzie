@@ -7,6 +7,9 @@ A Lustre web application for browsing and searching news articles from around th
 - **Search articles** by keyword with real-time query validation
 - **Browse top headlines** by country (US, UK, CA, DE, FR) with interactive filter buttons
 - **Filter headlines** by news sources with comma-separated source IDs
+- **Pagination** - Browse search results across multiple pages with Previous/Next navigation
+- **Enter key search** - Trigger search by pressing Return/Enter in the search input
+- **About page** - Learn about the application, its features, and technology stack
 - **Client-side routing** with modem for SPA navigation
 - **Responsive design** with Tailwind CSS
 - **Type-safe JSON decoding** with Gleam
@@ -26,6 +29,7 @@ The application follows the Elm Architecture pattern with:
   - `Search(query)` - Search results page
   - `Headlines(country)` - Headlines for specific country
   - `HeadlinesBySources(sources)` - Headlines from specific sources
+  - `About` - Information about the application
 - **Views** (`src/views.gleam`) - UI components with route-based content switching
 - **Main App** (`src/newzzie.gleam`) - Application initialization, update handlers, and modem integration
 
@@ -36,6 +40,7 @@ The application supports the following URL patterns:
 - `/search/:query` - Search results for a keyword
 - `/headlines/:country` - Top headlines for a specific country
 - `/top-headlines/sources/:sources` - Headlines from comma-separated sources
+- `/about` - Application information and details
 
 ## Dependencies
 
@@ -47,9 +52,10 @@ The application supports the following URL patterns:
 ## Development
 
 ```sh
-gleam run -m lustre/dev start   # Run the lustre development server with hot reload
+./startup.sh                    # Start the development server with hot reload
 gleam test                      # Run tests
 gleam build                     # Build for production
+gleam format                    # Format code (required before commits)
 ```
 
 ## Testing
