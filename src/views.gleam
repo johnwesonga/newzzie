@@ -109,6 +109,12 @@ fn view_search_form(model: models.Model) -> Element(models.Msg) {
             "flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500",
           ),
           event.on_input(models.SearchQueryChanged),
+          event.on_keydown(fn(key) {
+            case key {
+              "Enter" -> models.SearchArticles(model.current_query)
+              _ -> models.SearchQueryChanged(model.current_query)
+            }
+          }),
         ]),
         html.button(
           [
