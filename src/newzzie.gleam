@@ -21,13 +21,19 @@ fn init(_: Nil) -> #(models.Model, effect.Effect(models.Msg)) {
 
   let initial_model = models.Model(..models.init(), route: route)
 
+  // Only load default headlines if on home route; other routes will load their own data via UserNavigatedTo
+  let default_effect = case route {
+    routes.Home -> api_effect_for_home()
+    _ -> effect.none()
+  }
+
   let effects = [
     modem.init(fn(uri) {
       uri
       |> routes.parse_route
       |> models.UserNavigatedTo
     }),
-    api_effect_for_home(),
+    default_effect,
   ]
 
   #(initial_model, effect.batch(effects))
