@@ -60,6 +60,8 @@ fn handle_user_navigated_to(
   model: models.Model,
   route: routes.Route,
 ) -> #(models.Model, effect.Effect(models.Msg)) {
+  io.println("[Messages] Navigating to route from URL")
+
   // Extract page and context from route, update model accordingly
   let updated_model = case route {
     routes.Search(query, page) ->
@@ -68,6 +70,7 @@ fn handle_user_navigated_to(
         route: route,
         current_query: query,
         current_page: page,
+        loading: True,
       )
     routes.Headlines(country, page) ->
       models.Model(
@@ -75,16 +78,58 @@ fn handle_user_navigated_to(
         route: route,
         current_country: country,
         current_page: page,
+        loading: True,
       )
     routes.HeadlinesBySources(_sources, page) ->
-      models.Model(..model, route: route, current_page: page)
+      models.Model(..model, route: route, current_page: page, loading: True)
     _ -> models.Model(..model, route: route)
   }
 
   // Save to sessionStorage for recovery
   session.save_state(updated_model)
 
-  #(updated_model, effect.none())
+  // Fetch data for routes that need it
+  let api_effect = case route {
+    routes.Search(query, page) -> {
+      io.println(
+        "[Messages] Fetching search results for: "
+        <> query
+        <> " page "
+        <> int.to_string(page),
+      )
+      api.everything(query, page, fn(result) {
+        case result {
+          Ok(#(articles, json_str)) ->
+            models.ArticlesLoaded(articles, list.length(articles), json_str)
+          Error(_) ->
+            models.HeadlinesFailed(
+              "Failed to fetch articles. Please try again.",
+            )
+        }
+      })
+    }
+    routes.Headlines(country, page) -> {
+      io.println(
+        "[Messages] Fetching headlines for: "
+        <> country
+        <> " page "
+        <> int.to_string(page),
+      )
+      api.top_headlines(country, page, fn(result) {
+        case result {
+          Ok(#(articles, json_str)) ->
+            models.ArticlesLoaded(articles, list.length(articles), json_str)
+          Error(_) ->
+            models.HeadlinesFailed(
+              "Failed to fetch headlines. Please try again.",
+            )
+        }
+      })
+    }
+    _ -> effect.none()
+  }
+
+  #(updated_model, api_effect)
 }
 
 /// Handles changes to the search query input field.
