@@ -2,6 +2,8 @@
 
 A Lustre web application for browsing and searching news articles from around the world using the NewsApi.
 
+Built using AmpCode
+
 ## Features
 
 - **Search articles** by keyword with real-time query validation
