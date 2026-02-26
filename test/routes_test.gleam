@@ -25,41 +25,41 @@ pub fn parse_route_home_empty_test() {
 pub fn parse_route_search_test() {
   let uri = uri.parse("/search/bitcoin") |> should.be_ok
   let route = routes.parse_route(uri)
-  route |> should.equal(routes.Search("bitcoin"))
+  route |> should.equal(routes.Search("bitcoin", 1))
 }
 
 // Test search route with multiple words (encoded)
 pub fn parse_route_search_multi_word_test() {
   let uri = uri.parse("/search/cryptocurrency%20news") |> should.be_ok
   let route = routes.parse_route(uri)
-  route |> should.equal(routes.Search("cryptocurrency%20news"))
+  route |> should.equal(routes.Search("cryptocurrency%20news", 1))
 }
 
 // Test headlines route parsing
 pub fn parse_route_headlines_test() {
   let uri = uri.parse("/headlines/us") |> should.be_ok
   let route = routes.parse_route(uri)
-  route |> should.equal(routes.Headlines("us"))
+  route |> should.equal(routes.Headlines("us", 1))
 }
 
 // Test headlines with different countries
 pub fn parse_route_headlines_gb_test() {
   let uri = uri.parse("/headlines/gb") |> should.be_ok
   let route = routes.parse_route(uri)
-  route |> should.equal(routes.Headlines("gb"))
+  route |> should.equal(routes.Headlines("gb", 1))
 }
 
 pub fn parse_route_headlines_de_test() {
   let uri = uri.parse("/headlines/de") |> should.be_ok
   let route = routes.parse_route(uri)
-  route |> should.equal(routes.Headlines("de"))
+  route |> should.equal(routes.Headlines("de", 1))
 }
 
 // Test headlines by sources route parsing
 pub fn parse_route_sources_single_test() {
   let uri = uri.parse("/top-headlines/sources/bbc-news") |> should.be_ok
   let route = routes.parse_route(uri)
-  route |> should.equal(routes.HeadlinesBySources("bbc-news"))
+  route |> should.equal(routes.HeadlinesBySources("bbc-news", 1))
 }
 
 // Test headlines by sources with multiple sources
@@ -67,7 +67,7 @@ pub fn parse_route_sources_multiple_test() {
   let uri =
     uri.parse("/top-headlines/sources/bbc-news,cnn,fox-news") |> should.be_ok
   let route = routes.parse_route(uri)
-  route |> should.equal(routes.HeadlinesBySources("bbc-news,cnn,fox-news"))
+  route |> should.equal(routes.HeadlinesBySources("bbc-news,cnn,fox-news", 1))
 }
 
 // Test not found route for invalid path

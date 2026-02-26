@@ -6,6 +6,7 @@ import gleam/string
 import lustre/effect
 import models
 import routes
+import session
 import storage
 
 /// Handles all application messages and returns the updated model with effects.
@@ -59,7 +60,31 @@ fn handle_user_navigated_to(
   model: models.Model,
   route: routes.Route,
 ) -> #(models.Model, effect.Effect(models.Msg)) {
-  #(models.Model(..model, route: route), effect.none())
+  // Extract page and context from route, update model accordingly
+  let updated_model = case route {
+    routes.Search(query, page) ->
+      models.Model(
+        ..model,
+        route: route,
+        current_query: query,
+        current_page: page,
+      )
+    routes.Headlines(country, page) ->
+      models.Model(
+        ..model,
+        route: route,
+        current_country: country,
+        current_page: page,
+      )
+    routes.HeadlinesBySources(_sources, page) ->
+      models.Model(..model, route: route, current_page: page)
+    _ -> models.Model(..model, route: route)
+  }
+
+  // Save to sessionStorage for recovery
+  session.save_state(updated_model)
+
+  #(updated_model, effect.none())
 }
 
 /// Handles changes to the search query input field.
@@ -179,7 +204,27 @@ fn handle_go_to_page(
   page: Int,
 ) -> #(models.Model, effect.Effect(models.Msg)) {
   io.println("[Messages] Navigating to page " <> int.to_string(page))
-  let updated = models.Model(..model, loading: True, current_page: page)
+
+  // Update route to include page number
+  let updated_route = case model.route {
+    routes.Search(query, _) -> routes.Search(query, page)
+    routes.Headlines(country, _) -> routes.Headlines(country, page)
+    routes.HeadlinesBySources(sources, _) ->
+      routes.HeadlinesBySources(sources, page)
+    _ -> model.route
+  }
+
+  let updated =
+    models.Model(
+      ..model,
+      loading: True,
+      current_page: page,
+      route: updated_route,
+    )
+
+  // Update browser URL and save state
+  session.navigate_to(routes.route_to_path(updated_route))
+  session.save_state(updated)
 
   // Try to load from cache first
   let cache_key = case model.current_query {

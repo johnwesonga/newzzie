@@ -14,7 +14,7 @@ pub fn view(model: models.Model) -> Element(models.Msg) {
     view_header(),
     case model.route {
       routes.Home -> view_search_form(model)
-      routes.HeadlinesBySources(_) -> view_search_form(model)
+      routes.HeadlinesBySources(_, _) -> view_search_form(model)
       _ -> element.none()
     },
     html.div([attribute.class("flex-1 container mx-auto px-4 py-8 max-w-7xl")], [
@@ -28,9 +28,10 @@ pub fn view(model: models.Model) -> Element(models.Msg) {
 fn view_route_content(model: models.Model) -> Element(models.Msg) {
   case model.route {
     routes.Home -> view_content(model)
-    routes.Search(query) -> view_search_results(model, query)
-    routes.Headlines(country) -> view_headlines_results(model, country)
-    routes.HeadlinesBySources(sources) -> view_sources_results(model, sources)
+    routes.Search(query, _) -> view_search_results(model, query)
+    routes.Headlines(country, _) -> view_headlines_results(model, country)
+    routes.HeadlinesBySources(sources, _) ->
+      view_sources_results(model, sources)
     routes.About -> view_about()
     routes.NotFound(_) -> view_not_found()
   }
