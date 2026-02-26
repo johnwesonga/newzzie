@@ -21,11 +21,9 @@ fn init(_: Nil) -> #(models.Model, effect.Effect(models.Msg)) {
 
   let initial_model = models.Model(..models.init(), route: route)
 
-  // Only load default headlines if on home route; other routes will load their own data via UserNavigatedTo
-  let default_effect = case route {
-    routes.Home -> api_effect_for_home()
-    _ -> effect.none()
-  }
+  // Dispatch UserNavigatedTo for the initial route to load appropriate data
+  let initial_navigation_effect =
+    effect.from(fn(dispatch) { dispatch(models.UserNavigatedTo(route)) })
 
   let effects = [
     modem.init(fn(uri) {
@@ -33,16 +31,10 @@ fn init(_: Nil) -> #(models.Model, effect.Effect(models.Msg)) {
       |> routes.parse_route
       |> models.UserNavigatedTo
     }),
-    default_effect,
+    initial_navigation_effect,
   ]
 
   #(initial_model, effect.batch(effects))
-}
-
-fn api_effect_for_home() -> effect.Effect(models.Msg) {
-  let load_headlines = models.LoadTopHeadlines("us")
-  messages.update(models.init(), load_headlines)
-  |> fn(result) { result.1 }
 }
 
 // Handle application messages and update state
