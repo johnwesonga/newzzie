@@ -1,4 +1,6 @@
 import api
+import gleam/int
+import gleam/io
 import gleam/list
 import gleam/string
 import lustre/effect
@@ -165,6 +167,7 @@ fn handle_go_to_page(
   model: models.Model,
   page: Int,
 ) -> #(models.Model, effect.Effect(models.Msg)) {
+  io.println("[Messages] Navigating to page " <> int.to_string(page))
   let updated = models.Model(..model, loading: True, current_page: page)
 
   // Try to load from cache first
@@ -172,6 +175,7 @@ fn handle_go_to_page(
     "" -> storage.headlines_cache_key(model.current_country, page)
     query -> storage.search_cache_key(query, page)
   }
+  io.println("[Messages] Generated cache key: " <> cache_key)
 
   case storage.get_cached_articles(cache_key) {
     Ok(_) -> {

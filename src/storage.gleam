@@ -1,15 +1,24 @@
 import gleam/int
+import gleam/io
 
 /// Store articles in localStorage with a cache key
 pub fn cache_articles(key: String, json_str: String) -> Nil {
+  io.println("[Storage] Caching with key: " <> key)
   cache_string(key, json_str)
 }
 
 /// Retrieve cached articles from localStorage
 pub fn get_cached_articles(key: String) -> Result(String, Nil) {
+  io.println("[Storage] Retrieving cache for key: " <> key)
   case get_string(key) {
-    "" -> Error(Nil)
-    json_str -> Ok(json_str)
+    "" -> {
+      io.println("[Storage] Cache miss for key: " <> key)
+      Error(Nil)
+    }
+    json_str -> {
+      io.println("[Storage] Cache hit for key: " <> key)
+      Ok(json_str)
+    }
   }
 }
 
