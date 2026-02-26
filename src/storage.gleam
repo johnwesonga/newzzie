@@ -86,8 +86,8 @@ fn is_cache_valid_external(cache_data: String, ttl_seconds: Int) -> Bool
 /// Create a cache entry with timestamp and TTL metadata
 fn create_cache_entry(json_str: String) -> String {
   let timestamp = get_current_timestamp()
-  // Format: {"t":timestamp,"d":json_data}
-  "{\"t\":" <> int.to_string(timestamp) <> ",\"d\":" <> json_str <> "}"
+  // Format: timestamp|json_data (pipe-delimited to avoid escaping issues)
+  int.to_string(timestamp) <> "|" <> json_str
 }
 
 /// Check if cached entry is still valid (not expired)
@@ -97,26 +97,9 @@ fn is_cache_valid(cache_data: String) -> Bool {
 
 /// Extract the JSON data from a cache entry
 fn extract_json_from_cache(cache_data: String) -> Result(String, Nil) {
-  // Find the "d": position and extract everything after it until the last }
-  case string.contains(cache_data, "\"d\":") {
-    False -> Error(Nil)
-    True -> {
-      let parts = string.split(cache_data, "\"d\":")
-      case parts {
-        [_, rest] -> {
-          // Remove trailing }
-          let trimmed = string.trim_end(rest)
-          case string.ends_with(trimmed, "}") {
-            True -> {
-              let json_part =
-                string.slice(trimmed, 0, string.length(trimmed) - 1)
-              Ok(json_part)
-            }
-            False -> Error(Nil)
-          }
-        }
-        _ -> Error(Nil)
-      }
-    }
+  // Format is timestamp|json_data, so split on first pipe
+  case string.split_once(cache_data, "|") {
+    Ok(#(_timestamp, json_data)) -> Ok(json_data)
+    Error(_) -> Error(Nil)
   }
 }

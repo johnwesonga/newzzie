@@ -51,15 +51,21 @@ export function getCurrentTimestamp() {
 /// Check if cache entry is still valid (within TTL)
 export function isCacheValid(cacheData, ttlSeconds) {
   try {
-    // Parse cache format: {"t":timestamp,"d":{...}}
-    const entry = JSON.parse(cacheData);
-    if (!entry.t || !entry.d) {
-      console.log("[Storage] Cache entry missing timestamp or data");
+    // Parse cache format: timestamp|json_data
+    const pipeIndex = cacheData.indexOf("|");
+    if (pipeIndex === -1) {
+      console.log("[Storage] Cache entry missing pipe delimiter");
+      return false;
+    }
+
+    const timestamp = parseInt(cacheData.substring(0, pipeIndex), 10);
+    if (isNaN(timestamp)) {
+      console.log("[Storage] Cache entry has invalid timestamp");
       return false;
     }
 
     const now = Math.floor(Date.now() / 1000);
-    const age = now - entry.t;
+    const age = now - timestamp;
     const isValid = age < ttlSeconds;
 
     if (isValid) {
