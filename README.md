@@ -6,12 +6,13 @@ Built using AmpCode
 
 ## Features
 
-- **Search articles** by keyword with real-time query validation
+- **Search articles** by keyword with real-time query validation and Enter key support
 - **Browse top headlines** by country (US, UK, CA, DE, FR) with interactive filter buttons
 - **Filter headlines** by news sources with comma-separated source IDs
 - **Pagination** - Browse search results across multiple pages with Previous/Next navigation
-- **Enter key search** - Trigger search by pressing Return/Enter in the search input
+- **localStorage caching** - Articles are cached per page for instant access on repeat visits
 - **About page** - Learn about the application, its features, and technology stack
+- **Debugging logs** - Browser console logs track all localStorage operations and page navigation
 - **Client-side routing** with modem for SPA navigation
 - **Responsive design** with Tailwind CSS
 - **Type-safe JSON decoding** with Gleam
@@ -22,10 +23,16 @@ Built using AmpCode
 
 The application follows the Elm Architecture pattern with:
 - **Models** (`src/models.gleam`) - Article, Source data types and application state (Model, Msg)
-- **API Layer** (`src/api.gleam`) - NewsApi integration with three endpoints:
-  - `everything()` - Search articles by query
-  - `top_headlines()` - Get top news by country
-  - `top_headlines_by_source()` - Get news from specific sources
+- **API Layer** (`src/api.gleam`) - NewsApi integration with pagination support:
+  - `everything()` - Search articles by query with page number
+  - `top_headlines()` - Get top news by country with page number
+  - `top_headlines_by_source()` - Get news from specific sources with page number
+  - Returns both parsed articles and raw JSON string for caching
+- **Storage** (`src/storage.gleam`) - Browser localStorage integration:
+  - Cache articles with key based on query/country and page number
+  - Retrieve cached articles for repeat visits
+  - JavaScript FFI (`src/storage_ffi.mjs`) handles low-level storage operations with error handling
+- **Messages** (`src/messages.gleam`) - Update handlers for all user actions including pagination
 - **Routing** (`src/routes.gleam`) - Client-side routes:
   - `Home` - Landing page with search and country filters
   - `Search(query)` - Search results page
@@ -67,6 +74,22 @@ Tests use gleeunit. Run with:
 gleam test
 ```
 
+## Debugging
+
+Open the browser DevTools console to see detailed logging:
+- **[Storage]** prefix - localStorage cache operations with hit/miss status and sizes
+- **[Messages]** prefix - Page navigation and cache key generation
+
+This makes it easy to understand how the caching system works and debug issues.
+
+## How Caching Works
+
+1. When articles are fetched from the API, they're automatically cached to localStorage
+2. Cache keys are based on the search query/country and page number (e.g., `search_bitcoin_page_1`)
+3. On pagination, the app checks if the requested page is cached
+4. If cached, it fetches fresh data to stay current (configurable for lazy loading in future)
+5. All cache operations are logged to the browser console for debugging
+
 ## Requirements
 
-You'll need a free API key from [NewsApi.org](https://newsapi.org/) to use the application. Add your API key to the `newzzie.gleam` file where API calls are made.
+You'll need a free API key from [NewsApi.org](https://newsapi.org/) to use the application. The API key is configured in `src/api.gleam` as a module constant.
