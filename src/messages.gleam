@@ -55,15 +55,14 @@ pub fn update(
   }
 }
 
-/// Handles navigation to a new route.
-fn handle_user_navigated_to(
+/// Builds a model updated with context extracted from the given route.
+/// Sets route, current_query, current_country, current_page, and loading
+/// state appropriately so both init and navigation share consistent behaviour.
+pub fn model_for_route(
   model: models.Model,
   route: routes.Route,
-) -> #(models.Model, effect.Effect(models.Msg)) {
-  io.println("[Messages] Navigating to route from URL")
-
-  // Extract page and context from route, update model accordingly
-  let updated_model = case route {
+) -> models.Model {
+  case route {
     routes.Search(query, page) ->
       models.Model(
         ..model,
@@ -84,12 +83,12 @@ fn handle_user_navigated_to(
       models.Model(..model, route: route, current_page: page, loading: True)
     _ -> models.Model(..model, route: route)
   }
+}
 
-  // Save to sessionStorage for recovery
-  session.save_state(updated_model)
-
-  // Fetch data for routes that need it
-  let api_effect = case route {
+/// Returns the API effect required to load data for the given route.
+/// Returns effect.none() for routes that don't fetch data (Home, About, etc.).
+pub fn effect_for_route(route: routes.Route) -> effect.Effect(models.Msg) {
+  case route {
     routes.Search(query, page) -> {
       io.println(
         "[Messages] Fetching search results for: "
@@ -126,10 +125,38 @@ fn handle_user_navigated_to(
         }
       })
     }
+    routes.HeadlinesBySources(sources_str, page) -> {
+      io.println(
+        "[Messages] Fetching headlines by sources: "
+        <> sources_str
+        <> " page "
+        <> int.to_string(page),
+      )
+      let sources_list = string.split(sources_str, ",")
+      api.top_headlines_by_source(sources_list, page, fn(result) {
+        case result {
+          Ok(#(articles, json_str)) ->
+            models.ArticlesLoaded(articles, list.length(articles), json_str)
+          Error(_) ->
+            models.HeadlinesFailed(
+              "Failed to fetch headlines. Please try again.",
+            )
+        }
+      })
+    }
     _ -> effect.none()
   }
+}
 
-  #(updated_model, api_effect)
+/// Handles navigation to a new route.
+fn handle_user_navigated_to(
+  model: models.Model,
+  route: routes.Route,
+) -> #(models.Model, effect.Effect(models.Msg)) {
+  io.println("[Messages] Navigating to route from URL")
+  let updated_model = model_for_route(model, route)
+  session.save_state(updated_model)
+  #(updated_model, effect_for_route(route))
 }
 
 /// Handles changes to the search query input field.
@@ -145,8 +172,16 @@ fn handle_search_articles(
   model: models.Model,
   query: String,
 ) -> #(models.Model, effect.Effect(models.Msg)) {
+  let new_route = routes.Search(query, 1)
   let updated =
-    models.Model(..model, current_query: query, loading: True, current_page: 1)
+    models.Model(
+      ..model,
+      current_query: query,
+      loading: True,
+      current_page: 1,
+      route: new_route,
+    )
+  session.navigate_to(routes.route_to_path(new_route))
   let api_effect =
     api.everything(query, 1, fn(result) {
       case result {
@@ -164,13 +199,16 @@ fn handle_load_top_headlines(
   model: models.Model,
   country: String,
 ) -> #(models.Model, effect.Effect(models.Msg)) {
+  let new_route = routes.Headlines(country, 1)
   let updated =
     models.Model(
       ..model,
       current_country: country,
       loading: True,
       current_page: 1,
+      route: new_route,
     )
+  session.navigate_to(routes.route_to_path(new_route))
   let api_effect =
     api.top_headlines(country, 1, fn(result) {
       case result {

@@ -19,9 +19,8 @@ fn init(_: Nil) -> #(models.Model, effect.Effect(models.Msg)) {
     Error(_) -> routes.Home
   }
 
-  let initial_model = models.Model(..models.init(), route: route)
+  let initial_model = messages.model_for_route(models.init(), route)
 
-  // Use modem to handle all route changes including initial load
   let router_effect =
     modem.init(fn(uri) {
       uri
@@ -29,7 +28,9 @@ fn init(_: Nil) -> #(models.Model, effect.Effect(models.Msg)) {
       |> models.UserNavigatedTo
     })
 
-  #(initial_model, router_effect)
+  let load_effect = messages.effect_for_route(route)
+
+  #(initial_model, effect.batch([router_effect, load_effect]))
 }
 
 // Handle application messages and update state
